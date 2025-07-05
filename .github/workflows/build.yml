@@ -1,0 +1,70 @@
+name: CI Build
+
+on:
+  push:
+    branches:
+      - "main"
+      - "develop"
+      - 'feature-*'
+      - 'feature/*'
+    paths-ignore:
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Wiki
+        uses: actions/checkout@v4
+        with:
+          repository: cnopslabs/ocloud.wiki
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: .github/wiki
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+          cache: true
+      # Ensure all Go files are formatted
+      - name: Check gofmt
+        run: |
+          unformatted=$(gofmt -s -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following files are not gofmted:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run tests
+        run: go test -race -vet=off ./...
+
+      - name: Update coverage report
+        uses: ncruces/go-coverage-report@v0.3.0
+        with:
+          report: true
+          chart: true
+          amend: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_REPORT_COV }}
+        continue-on-error: true
+
+      - name: Build project
+        run: |
+          make clean
+          make build
