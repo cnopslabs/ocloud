@@ -155,7 +155,7 @@ You can override the tenancy map path using the `OCI_TENANCY_MAP_PATH` environme
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--json` | `-j` | Output information in JSON format |
-| `--image-details` | `-i` | Show image details including OS and tags |
+| `--all` | `-A` | Show image details including OS and tags |
 | `--limit` | `-m` | Maximum number of records per page (default: 20) |
 | `--page` | `-p` | Page number to display (default: 1) |
 
@@ -195,13 +195,13 @@ ocloud --compartment my-compartment compute instance list --limit 10 --page 2
 ocloud --compartment my-compartment compute instance find "web-server"
 
 # Find instances with image details
-ocloud --compartment my-compartment compute instance find "web-server" --image-details
+ocloud --compartment my-compartment compute instance find "web-server" --all
 
 # Output instance information in JSON format
 ocloud --compartment my-compartment compute instance list --json
 
 # Find instances and output results in JSON format with image details
-ocloud --compartment my-compartment compute instance find "web-server" --json --image-details
+ocloud --compartment my-compartment compute instance find "web-server" --json --all
 ```
 
 ### Working with Images
