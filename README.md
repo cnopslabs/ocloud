@@ -155,7 +155,7 @@ You can override the tenancy map path using the `OCI_TENANCY_MAP_PATH` environme
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--json` | `-j` | Output information in JSON format |
-| `--all` | `-A` | Show image details including OS and tags |
+| `--all` | `-A` | Show image details including OS |
 | `--limit` | `-m` | Maximum number of records per page (default: 20) |
 | `--page` | `-p` | Page number to display (default: 1) |
 
