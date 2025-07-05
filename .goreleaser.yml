@@ -15,7 +15,7 @@ builds:
     flags:
       - -mod=readonly
     ldflags:
-      - "-s -w -X 'github.com/rozdolsky33/ocloud/buildinfo.Version={{.Version}}' -X 'github.com/rozdolsky33/ocloud/buildinfo.CommitHash={{.Commit}}' -X 'github.com/rozdolsky33/ocloud/buildinfo.BuildTime={{.Date}}'"
+      - "-s -w -X 'github.com/cnopslabs/ocloud/buildinfo.Version={{.Version}}' -X 'github.com/cnopslabs/ocloud/buildinfo.CommitHash={{.Commit}}' -X 'github.com/cnopslabs/ocloud/buildinfo.BuildTime={{.Date}}'"
 release:
   prerelease: auto
 
@@ -28,11 +28,11 @@ checksum:
 brews:
   - name: ocloud
     description: "Tool for finding and connecting to OCI instances"
-    homepage: "https://github.com/rozdolsky33/ocloud"
+    homepage: "https://github.com/cnopslabs/ocloud"
     license: "MIT"
     install: |
       bin.install "ocloud"
     repository:
-      owner: rozdolsky33
+      owner: cnopslabs
       name: ocloud
     directory: Formula
