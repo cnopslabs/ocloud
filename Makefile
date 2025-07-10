@@ -28,7 +28,7 @@ LDFLAGS := -X '$(PKG)/buildinfo.Version=$(VERSION)' \
 .DEFAULT_GOAL := help
 
 # Targets
-.PHONY: all build run install test fmt fmt-check vet lint clean help generate release compile zip check-env update-deps integration-test
+.PHONY: all build run install test fmt fmt-check vet lint clean help generate release compile zip check-env update-deps integration-test vulncheck
 
 all: build
 
@@ -90,6 +90,11 @@ lint:
 	@echo "Linting code..."
 	@$(GOLANGCI_LINT) run --no-config ./...
 
+# Check for vulnerabilities
+vulncheck:
+	@echo "Checking for vulnerabilities..."
+	@go run golang.org/x/vuln/cmd/govulncheck ./...
+
 # Generate code
 generate:
 	@echo "Generating code..."
@@ -101,7 +106,7 @@ clean:
 	@rm -rf $(OUTPUT_DIR)
 
 # Release target for multiple platforms
-release: clean vet lint compile zip
+release: clean vet lint vulncheck compile zip
 
 # Compile binaries for multiple platforms
 compile:
@@ -141,6 +146,7 @@ help:
 	@echo "  fmt-check      Checks if Go source files are formatted correctly"
 	@echo "  vet            Runs go vet on the code"
 	@echo "  lint           Runs golangci-lint on the code"
+	@echo "  vulncheck      Runs govulncheck to check for vulnerabilities"
 	@echo "  generate       Runs go generate to update generated code"
 	@echo "  clean          Removes build artifacts"
 	@echo "  release        Builds binaries for all supported platforms and creates zip archives"
