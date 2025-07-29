@@ -12,7 +12,7 @@ import (
 // setLogLevel sets the logging level and colored output based on command-line flags or default values.
 // It ensures consistent log settings, initializes the logger, and applies settings globally.
 func setLogLevel(tempRoot *cobra.Command) error {
-	// Check for version flag first - if present, print version and exit
+	// Check for a version flag first - if present, print the version and exit
 	// This is needed because the version flag is added to the real root command,
 	// but not to the temporary root command used for initial flag parsing.
 	// By checking for the version flag here, we ensure that both `./ocloud -v`

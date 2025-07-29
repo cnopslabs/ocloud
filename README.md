@@ -28,6 +28,13 @@ Whether you're managing instances, working with images, or need to quickly find 
 - **Database Management**
   - List and find Autonomous Databases with detailed information
 
+- **Network Management**
+  - List and find subnets with detailed information
+
+- **Configuration Management**
+  - Authenticate with OCI and refresh session tokens
+  - View information about ocloud environment configuration
+
 - **Enhanced User Experience**
   - Colored output for improved readability
   - Configurable verbosity levels for debugging
@@ -269,6 +276,38 @@ ocloud --compartment my-compartment database autonomousdb find "my-database"
 ocloud --compartment my-compartment database autonomousdb list --json
 ```
 
+### Working with Subnets
+
+```bash
+# List all subnets in a compartment
+ocloud --compartment my-compartment network subnet list
+
+# Find subnets by name pattern
+ocloud --compartment my-compartment network subnet find "public"
+
+# Output subnet information in JSON format
+ocloud --compartment my-compartment network subnet list --json
+```
+
+### Working with Configuration
+
+```bash
+# Authenticate with OCI and refresh session tokens
+ocloud config session authenticate
+
+# Authenticate with OCI and filter profiles by region
+ocloud config session authenticate --filter us
+
+# View tenancy mapping information
+ocloud config info map-file
+
+# View tenancy mapping information in JSON format
+ocloud config info map-file --json
+
+# View tenancy mapping information for a specific realm
+ocloud config info map-file --realm OC1
+```
+
 ### Working with Different Tenancies
 
 ```bash
@@ -282,60 +321,27 @@ ocloud --tenancy-name my-production-tenancy compute instance list
 export OCI_TENANCY_NAME=my-production-tenancy
 ocloud compute instance list
 ```
-
-## Development
-
-### Project Structure
-
-The project follows a modern Go application structure:
-
-- `buildinfo/`: Version information
-- `cmd/`: Command-line interface implementation
-  - `root.go`: Root command and global flags
-  - `compute/`: Compute-related commands
-    - `root.go`: Compute command and flags
-    - `instance/`: Instance-related commands
-    - `image/`: Image-related commands
-    - `oke/`: Oracle Kubernetes Engine commands
-  - `identity/`: Identity-related commands
-    - `root.go`: Identity command and flags
-    - `compartment/`: Compartment-related commands
-    - `policy/`: Policy-related commands
-  - `database/`: Database-related commands
-    - `root.go`: Database command and flags
-    - `autonomousdb/`: Autonomous Database-related commands
-  - `version/`: Version command implementation
-- `internal/`: Internal packages (not intended for external use)
-  - `app/`: Application context and core functionality
-  - `config/`: Configuration handling
-  - `logger/`: Logging setup and utilities
-  - `oci/`: OCI client factories
-  - `printer/`: Output formatting utilities
-  - `services/`: Service implementations
-    - `compute/`: Compute resource operations
-      - `instance/`: Instance-related operations
-      - `image/`: Image-related operations
-      - `oke/`: Oracle Kubernetes Engine operations
-    - `database/`: Database resource operations
-      - `autonomousdb/`: Autonomous Database operations
-    - `identity/`: Identity resource operations
-      - `compartment/`: Compartment-related operations
-      - `policy/`: Policy-related operations
-    - `network/`: Network resource operations
-    - `util/`: Utility functions and helpers
-
 ### Development Commands
 
 | Command | Description |
 |---------|-------------|
 | `make build` | Build the binary |
 | `make run` | Build and run the CLI |
+| `make install` | Install the binary to $GOBIN or $(go env GOPATH)/bin |
 | `make test` | Run tests |
+| `make integration-test` | Run the test_ocloud.sh integration test script |
+| `make update-deps` | Update all dependencies and tidy go.mod |
 | `make fmt` | Format code |
+| `make fmt-check` | Check if Go source files are formatted correctly |
 | `make vet` | Run go vet |
 | `make lint` | Run golangci-lint |
-| `make generate` | Run go generate to update generated code |
+| `make vulncheck` | Run govulncheck to check for vulnerabilities |
 | `make clean` | Clean build artifacts |
+| `make release` | Build binaries for all supported platforms and create zip archives |
+| `make compile` | Compile binaries for all supported platforms |
+| `make zip` | Create zip archives for all binaries |
+| `make check-env` | Check if required tools are installed |
+| `make help` | Display help message |
 
 ### Testing
 
@@ -344,7 +350,9 @@ The project includes a comprehensive test script `test_ocloud.sh` that tests all
 - Root commands and global flags
 - Compute commands (instance, image, oke)
 - Identity commands (compartment, policy)
+- Network commands (subnet)
 - Database commands (autonomousdb)
+- Configuration commands (info)
 
 The script tests various flags and abbreviations for each command, following a consistent pattern throughout.
 

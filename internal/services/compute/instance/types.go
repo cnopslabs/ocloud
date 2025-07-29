@@ -7,7 +7,7 @@ import (
 	"github.com/oracle/oci-go-sdk/v65/core"
 )
 
-// Service encapsulates OCI compute/network clients and config.
+// Service encapsulates OCI compute/network clients and configuration.
 // It provides methods to list and find instances without printing directly.
 type Service struct {
 	compute           core.ComputeClient

@@ -95,11 +95,6 @@ vulncheck:
 	@echo "Checking for vulnerabilities..."
 	@go run golang.org/x/vuln/cmd/govulncheck ./...
 
-# Generate code
-generate:
-	@echo "Generating code..."
-	@go generate ./...
-
 # Clean build artifacts
 clean:
 	@echo "Cleaning up..."
@@ -147,7 +142,6 @@ help:
 	@echo "  vet            Runs go vet on the code"
 	@echo "  lint           Runs golangci-lint on the code"
 	@echo "  vulncheck      Runs govulncheck to check for vulnerabilities"
-	@echo "  generate       Runs go generate to update generated code"
 	@echo "  clean          Removes build artifacts"
 	@echo "  release        Builds binaries for all supported platforms and creates zip archives"
 	@echo "  compile        Compiles binaries for all supported platforms"
