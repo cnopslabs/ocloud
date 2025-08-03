@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/cnopslabs/ocloud/buildinfo"
 	"github.com/cnopslabs/ocloud/internal/config"
-	"git
+	"github.com/fatih/color"
 	"os"
 	"os/exec"
 	"regexp"

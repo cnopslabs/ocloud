@@ -7,7 +7,7 @@ import (
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/oci"
 	"github.com/cnopslabs/ocloud/internal/services/util"
-	"github.c
+	"github.com/oracle/oci-go-sdk/v65/core"
 	"strings"
 )
 

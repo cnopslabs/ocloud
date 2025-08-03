@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/printer"
-	"github.c
+	"github.com/jedib0t/go-pretty/v6/text"
 	"strings"
 )
 

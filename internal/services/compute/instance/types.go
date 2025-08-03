@@ -1,7 +1,7 @@
 package instance
 
 import (
-	"github.com/cnopslabs/ocl
+	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/go-logr/logr"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/core"
