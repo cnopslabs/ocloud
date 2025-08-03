@@ -15,7 +15,7 @@ The `Printer` struct is the main component of this package, providing methods to
 This package is part of the ocloud project and is already included in the codebase. To use it in your code, simply import it:
 
 ```
-import "github.com/rozdolsky33/ocloud/internal/printer"
+import "github.com/cnopslabs/ocloud/internal/printer"
 ```
 
 ## Dependencies

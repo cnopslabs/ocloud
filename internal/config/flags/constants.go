@@ -8,17 +8,6 @@ const (
 	FlagNameTenancyID          = "tenancy-id"
 	FlagNameTenancyName        = "tenancy-name"
 	FlagNameCompartment        = "compartment"
-	FlagNameCreate             = "create"
-	FlagNameType               = "type"
-	FlagNameBastionID          = "bastion-id"
-	FlagNameTargetIP           = "target-ip"
-	FlagNameTTL                = "ttl"
-	FlagNamePrivateKey         = "private-key"
-	FlagNamePublicKey          = "public-key"
-	FlagNameInstanceID         = "instance-id"
-	FlagNameUser               = "user"
-	FlagNameLocalFwPort        = "local-fw-port"
-	FlagNameHostFwPort         = "host-fw-port"
 	FlagNameHelp               = "help"
 	FlagNameColor              = "color"
 	FlagNameDisableConcurrency = "disable-concurrency"
@@ -36,17 +25,6 @@ const (
 const (
 	FlagShortTenancyID          = "t"
 	FlagShortCompartment        = "c"
-	FlagShortCreate             = "r"
-	FlagShortType               = "y"
-	FlagShortBastionID          = "b"
-	FlagShortTargetIP           = "i"
-	FlagShortTTL                = "m"
-	FlagShortPrivateKey         = "a"
-	FlagShortPublicKey          = "e"
-	FlagShortInstanceID         = "o"
-	FlagShortUser               = "u"
-	FlagShortLocalFwPort        = "w"
-	FlagShortHostFwPort         = "f"
 	FlagShortHelp               = "h"
 	FlagShortDebug              = "d"
 	FlagShortDisableConcurrency = "x"
@@ -64,17 +42,6 @@ const (
 const (
 	FlagDescLogLevel           = "Set the log verbosity debug,"
 	FlagDescDebug              = "Enable debug logging"
-	FlagDescCreate             = "Create a resource"
-	FlagDescType               = "Resource type"
-	FlagDescBastionID          = "Bastion OCID"
-	FlagDescTargetIP           = "Target IP address"
-	FlagDescTTL                = "TTL in minutes"
-	FlagDescPrivateKey         = "Private key file path"
-	FlagDescPublicKey          = "Public key file path"
-	FlagDescInstanceID         = "Instance OCID"
-	FlagDescUser               = "User name"
-	FlagDescLocalFwPort        = "Local port forwarded to the instance"
-	FlagDescHostFwPort         = "Host port forwarded to the instance"
 	FlagDescTenancyID          = "OCI tenancy OCID"
 	FlagDescTenancyName        = "Tenancy name"
 	FlagDescCompartment        = "OCI compartment name"
@@ -111,10 +78,23 @@ const (
 	CobraAnnotationKey                = "cobra_annotation_flag_set_by_cobra"
 )
 
-// Environment variables
+// Environment variable keys
 const (
-	EnvOCITenancy     = "OCI_CLI_TENANCY"
-	EnvOCITenancyName = "OCI_TENANCY_NAME"
-	EnvOCICompartment = "OCI_COMPARTMENT"
-	EnvOCIRegion      = "OCI_REGION"
+	EnvKeyProfile        = "OCI_CLI_PROFILE"
+	EnvKeyCLITenancy     = "OCI_CLI_TENANCY"
+	EnvKeyTenancyName    = "OCI_TENANCY_NAME"
+	EnvKeyCompartment    = "OCI_COMPARTMENT"
+	EnvKeyAutoRefresher  = "OCI_AUTH_AUTO_REFRESHER"
+	EnvKeyRegion         = "OCI_REGION"
+	EnvKeyTenancyMapPath = "OCI_TENANCY_MAP_PATH"
+)
+
+// File/system names & defaults
+const (
+	DefaultProfileName = "DEFAULT"
+
+	OCIConfigDirName     = ".oci"
+	OCIConfigFileName    = "config"
+	OCloudDefaultDirName = ".ocloud"
+	TenancyMapFileName   = "tenancy-map.yaml"
 )

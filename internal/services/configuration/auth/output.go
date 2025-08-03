@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/printer"
 	"github.com/jedib0t/go-pretty/v6/text"
@@ -117,17 +118,17 @@ func PrintExportVariable(profile, tenancyName, compartment string) error {
 	exportVars := make(map[string]string)
 
 	if profile != "" {
-		exportVars["OCI_CLI_PROFILE"] = profile
+		exportVars[flags.EnvKeyProfile] = profile
 		logger.LogWithLevel(logger.Logger, 3, "Added profile to export variables", "profile", profile)
 	}
 
 	if tenancyName != "" {
-		exportVars["OCI_TENANCY_NAME"] = tenancyName
+		exportVars[flags.EnvKeyTenancyName] = tenancyName
 		logger.LogWithLevel(logger.Logger, 3, "Added tenancy name to export variables", "tenancyName", tenancyName)
 	}
 
 	if compartment != "" {
-		exportVars["OCI_COMPARTMENT"] = compartment
+		exportVars[flags.EnvKeyCompartment] = compartment
 		logger.LogWithLevel(logger.Logger, 3, "Added compartment to export variables", "compartment", compartment)
 	}
 

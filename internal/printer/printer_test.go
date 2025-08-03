@@ -8,10 +8,10 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	// Create a buffer to capture the output
+	// Create a buffer to capture output
 	var buf bytes.Buffer
 
-	// Create a new printer with the buffer as an output
+	// Create a new printer with the buffer as output
 	p := New(&buf)
 
 	// Check that the printer was created correctly
@@ -146,10 +146,10 @@ func TestPrintKeyValues_MissingKey(t *testing.T) {
 }
 
 func TestPrintTable(t *testing.T) {
-	// Create a buffer to capture the output
+	// Create a buffer to capture output
 	var buf bytes.Buffer
 
-	// Create a new printer with the buffer as an output
+	// Create a new printer with the buffer as output
 	p := New(&buf)
 
 	// Test data

@@ -13,43 +13,6 @@ OCloud is a powerful command-line interface (CLI) tool designed to simplify inte
 
 Whether you're managing instances, working with images, or need to quickly find resources across your OCI environment, OCloud offers an intuitive and efficient interface that works seamlessly with your existing OCI configuration.
 
-## Features
-
-- **Compute Resource Management**
-  - List and find compute instances with detailed information
-  - View instance details including OS, image information, and resource specifications
-  - Manage compute images with search capabilities
-  - List and find Oracle Kubernetes Engine (OKE) clusters
-
-- **Identity Management**
-  - List and find compartments with detailed information
-  - Manage identity policies with search capabilities
-
-- **Database Management**
-  - List and find Autonomous Databases with detailed information
-
-- **Network Management**
-  - List and find subnets with detailed information
-
-- **Configuration Management**
-  - Authenticate with OCI and refresh session tokens
-  - View information about ocloud environment configuration
-
-- **Enhanced User Experience**
-  - Colored output for improved readability
-  - Configurable verbosity levels for debugging
-  - JSON output support for automation and scripting
-  - Pagination support for large result sets
-
-- **Flexible Configuration**
-  - Support for multiple tenancies and compartments
-  - Configuration via environment variables, flags, or OCI config file
-  - Tenancy mapping for simplified cross-environment management
-
-- **Performance Optimizations**
-  - Concurrent API calls for faster data retrieval (with rate limiting protection)
-  - Efficient resource usage with pagination controls
-
 ## Installation
 
 OCloud can be installed in several ways:
@@ -83,7 +46,7 @@ chmod +x ~/.local/bin/ocloud
 
 #### Windows
 
-1. Download the Windows binary from the releases page
+1. Download the Windows binary from the release page
 2. Add the location to your PATH environment variable
 3. Launch a new console session to apply the updated environment variable
 
@@ -115,9 +78,38 @@ OCloud can be configured in multiple ways, with the following precedence (highes
 
 OCloud uses the standard OCI configuration file located at `~/.oci/config`. You can specify a different profile using the `OCI_CLI_PROFILE` environment variable.
 
+### Authentication
+
+OCloud provides interactive authentication with OCI through the `config session` command:
+
+```bash
+# Authenticate with OCI
+ocloud config session authenticate
+
+# Filter regions by prefix (e.g., us, eu, ap)
+ocloud config session authenticate --filter us
+
+# Filter by realm (e.g., OC1, OC2)
+ocloud config session authenticate --realm OC1
+```
+
+During authentication, you'll be prompted to set up the OCI Auth Refresher, which keeps your OCI session alive by automatically refreshing it before it expires. This is especially useful for long-running operations.
+
+### OCI Auth Refresher
+
+The OCI Auth Refresher is a background service that keeps your OCI session active by refreshing it shortly before it expires. When enabled, it runs as a background process and continuously monitors your session status.
+
+Key features:
+- Automatically refreshes your OCI session before it expires
+- Runs in the background with minimal resource usage
+- Supports multiple OCI profiles
+- Status is displayed in the configuration output (`OCI_AUTH_AUTO_REFRESHER: ON [PID]`)
+
+The refresher script is embedded in the ocloud binary and is automatically extracted to `~/.oci/.ocloud/scripts/` when needed.
+
 ### Tenancy Mapping
 
-OCloud supports mapping tenancy names to OCIDs using a YAML file located at `~/.oci/tenancy-map.yaml`. The format is:
+OCloud supports mapping tenancy names to OCIDs using a YAML file located at `~/.oci/.ocloud/tenancy-map.yaml`. The format is:
 
 ```yaml
 - environment: "prod"
@@ -130,6 +122,19 @@ OCloud supports mapping tenancy names to OCIDs using a YAML file located at `~/.
 
 You can override the tenancy map path using the `OCI_TENANCY_MAP_PATH` environment variable.
 
+To view the tenancy mapping information:
+
+```bash
+# View tenancy mapping information
+ocloud config info map-file
+
+# View in JSON format
+ocloud config info map-file --json
+
+# Filter by realm
+ocloud config info map-file --realm OC1
+```
+
 ### Environment Variables
 
 | Variable | Description |
@@ -138,8 +143,9 @@ You can override the tenancy map path using the `OCI_TENANCY_MAP_PATH` environme
 | `OCI_CLI_TENANCY` | Tenancy OCID |
 | `OCI_TENANCY_NAME` | Tenancy name (looked up in tenancy map) |
 | `OCI_COMPARTMENT` | Compartment name |
-| `OCI_CLI_REGION` | OCI region |
+| `OCI_REGION` | OCI region |
 | `OCI_TENANCY_MAP_PATH` | Path to tenancy mapping file |
+| `OCI_AUTH_AUTO_REFRESHER` | Status of the OCI auth refresher |
 
 ### Command-Line Flags
 
@@ -157,202 +163,96 @@ You can override the tenancy map path using the `OCI_TENANCY_MAP_PATH` environme
 | `--version` | `-v` | Print the version number |
 | `--help` | `-h` | Display help information |
 
-#### Instance Command Flags
+#### Command Flags
 
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--json` | `-j` | Output information in JSON format |
-| `--all` | `-A` | Show image details including OS |
-| `--limit` | `-m` | Maximum number of records per page (default: 20) |
-| `--page` | `-p` | Page number to display (default: 1) |
+| Flag      | Short | Description |
+|-----------|-------|-------------|
+| `--json`  | `-j`  | Output information in JSON format |
+| `--all`   | `-A`  | Show all information |
+| `--limit` | `-m`  | Maximum number of records per page (default: 20) |
+| `--page`  | `-p`  | Page number to display (default: 1) |
+| `--filter` | `-f` | Filter regions by prefix (e.g., us, eu, ap) |
+| `--realm` | `-r` | Filter by realm (e.g., OC1, OC2) |
 
-## Usage Examples
+## Available Commands
 
-### Command Structure
-
-OCloud uses a subcommand structure:
+Running `ocloud` without any arguments displays the configuration details and available commands:
 
 ```
-ocloud [global flags] <command> <subcommand> [command flags] [arguments]
+ ██████╗  ██████╗██╗      ██████╗ ██╗   ██╗██████╗
+██╔═══██╗██╔════╝██║     ██╔═══██╗██║   ██║██╔══██╗
+██║   ██║██║     ██║     ██║   ██║██║   ██║██║  ██║
+██║   ██║██║     ██║     ██║   ██║██║   ██║██║  ██║
+╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
+ ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
+
+	      Version: v0.0.20-8-g71a01d2-dirty
+
+Configuration Details: Valid until 2025-08-02 23:26:28
+  OCI_CLI_PROFILE: DEFAULT
+  OCI_TENANCY_NAME: cloudops
+  OCI_COMPARTMENT_NAME: cnopslabsdev1
+  OCI_AUTH_AUTO_REFRESHER: ON [44123]
+  OCI_TENANCY_MAP_PATH: /Users/<name>/.oci/.ocloud/tenancy-map.yaml
+
+Interact with Oracle Cloud Infrastructure
+
+Usage:
+  ocloud [flags]
+  ocloud [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  compute     Manage OCI compute services
+  config      Manage ocloud CLI configurations file and authentication
+  database    Manage OCI Database services
+  help        Help about any command
+  identity    Manage OCI identity services
+  network     Manage OCI networking services
+  version     Print the version information
+
+Flags:
+      --color                 Enable colored log messages.
+  -c, --compartment string    OCI compartment name
+  -d, --debug                 Enable debug logging
+  -x, --disable-concurrency   Disable concurrency when fetching instance details (use -x to disable concurrency if rate limit is reached for large result sets)
+  -h, --help                  help for ocloud (shorthand: -h)
+  -j, --json                  Output information in JSON format
+      --log-level string      Set the log verbosity debug, (default "info")
+  -t, --tenancy-id string     OCI tenancy OCID
+      --tenancy-name string   Tenancy name
+  -v, --version               Print the version number of ocloud CLI
 ```
 
-### Basic Usage
-
-```bash
-# Show help
-ocloud --help
-
-# Show compute instance command help
-ocloud compute instance --help
-
-# Show version information
-ocloud --version
-```
-
-### Working with Instances
-
-```bash
-# List all instances in a compartment
-ocloud --compartment my-compartment compute instance list
-
-# List all instances with pagination
-ocloud --compartment my-compartment compute instance list --limit 10 --page 2
-
-# Find instances by name pattern
-ocloud --compartment my-compartment compute instance find "web-server"
-
-# Find instances with image details
-ocloud --compartment my-compartment compute instance find "web-server" --all
-
-# Output instance information in JSON format
-ocloud --compartment my-compartment compute instance list --json
-
-# Find instances and output results in JSON format with image details
-ocloud --compartment my-compartment compute instance find "web-server" --json --all
-```
-
-### Working with Images
-
-```bash
-# List all image in a compartment
-ocloud --compartment my-compartment compute image list
-
-# Find image by name pattern
-ocloud --compartment my-compartment compute image find "Oracle-Linux"
-
-# Output image information in JSON format
-ocloud --compartment my-compartment compute image list --json
-```
-
-### Working with OKE Clusters
-
-```bash
-# List all OKE clusters in a compartment
-ocloud --compartment my-compartment compute oke list
-
-# Find OKE clusters by name pattern
-ocloud --compartment my-compartment compute oke find "my-cluster"
-
-# Output OKE cluster information in JSON format
-ocloud --compartment my-compartment compute oke list --json
-```
-
-### Working with Compartments
-
-```bash
-# List all compartments
-ocloud identity compartment list
-
-# Find compartments by name pattern
-ocloud identity compartment find "my-compartment"
-
-# Output compartment information in JSON format
-ocloud identity compartment list --json
-```
-
-### Working with Policies
-
-```bash
-# List all policies
-ocloud identity policy list
-
-# Find policies by name pattern
-ocloud identity policy find "my-policy"
-
-# Output policy information in JSON format
-ocloud identity policy list --json
-```
-
-### Working with Autonomous Databases
-
-```bash
-# List all Autonomous Databases in a compartment
-ocloud --compartment my-compartment database autonomousdb list
-
-# Find Autonomous Databases by name pattern
-ocloud --compartment my-compartment database autonomousdb find "my-database"
-
-# Output Autonomous Database information in JSON format
-ocloud --compartment my-compartment database autonomousdb list --json
-```
-
-### Working with Subnets
-
-```bash
-# List all subnets in a compartment
-ocloud --compartment my-compartment network subnet list
-
-# Find subnets by name pattern
-ocloud --compartment my-compartment network subnet find "public"
-
-# Output subnet information in JSON format
-ocloud --compartment my-compartment network subnet list --json
-```
-
-### Working with Configuration
-
-```bash
-# Authenticate with OCI and refresh session tokens
-ocloud config session authenticate
-
-# Authenticate with OCI and filter profiles by region
-ocloud config session authenticate --filter us
-
-# View tenancy mapping information
-ocloud config info map-file
-
-# View tenancy mapping information in JSON format
-ocloud config info map-file --json
-
-# View tenancy mapping information for a specific realm
-ocloud config info map-file --realm OC1
-```
-
-### Working with Different Tenancies
-
-```bash
-# Use a specific tenancy by OCID
-ocloud --tenancy-id ocid1.tenancy.oc1..aaaaaaaa... compute instance list
-
-# Use a tenancy by name (requires tenancy map)
-ocloud --tenancy-name my-production-tenancy compute instance list
-
-# Use environment variables
-export OCI_TENANCY_NAME=my-production-tenancy
-ocloud compute instance list
-```
 ### Development Commands
 
 | Command | Description |
 |---------|-------------|
 | `make build` | Build the binary |
 | `make run` | Build and run the CLI |
-| `make install` | Install the binary to $GOBIN or $(go env GOPATH)/bin |
+| `make install` | Install the binary to $GOPATH/bin |
 | `make test` | Run tests |
-| `make integration-test` | Run the test_ocloud.sh integration test script |
-| `make update-deps` | Update all dependencies and tidy go.mod |
 | `make fmt` | Format code |
-| `make fmt-check` | Check if Go source files are formatted correctly |
+| `make fmt-check` | Check if code is formatted correctly |
 | `make vet` | Run go vet |
 | `make lint` | Run golangci-lint |
-| `make vulncheck` | Run govulncheck to check for vulnerabilities |
 | `make clean` | Clean build artifacts |
 | `make release` | Build binaries for all supported platforms and create zip archives |
 | `make compile` | Compile binaries for all supported platforms |
 | `make zip` | Create zip archives for all binaries |
 | `make check-env` | Check if required tools are installed |
-| `make help` | Display help message |
+| `make help` | Display help message with available commands |
 
 ### Testing
 
 The project includes a comprehensive test script `test_ocloud.sh` that tests all major command categories and their subcommands:
 
 - Root commands and global flags
+- Configuration commands (info, map-file, session)
 - Compute commands (instance, image, oke)
 - Identity commands (compartment, policy)
 - Network commands (subnet)
 - Database commands (autonomousdb)
-- Configuration commands (info)
 
 The script tests various flags and abbreviations for each command, following a consistent pattern throughout.
 
@@ -371,15 +271,11 @@ OCloud provides detailed error messages and supports different verbosity levels:
 - `--log-level warn`: Shows only warnings and errors
 - `--log-level error`: Shows only errors
 
-You can also use the shorthand `-d` flag to enable debug logging:
-
-```bash
-ocloud -d compute instance list
-```
+You can also use the shorthand `-d` flag to enable debug logging.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License—see the [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
