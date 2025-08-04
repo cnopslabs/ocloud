@@ -1,12 +1,11 @@
 # OCloud - Oracle Cloud Infrastructure CLI Tool
 [![CI Build](https://github.com/cnopslabs/ocloud/actions/workflows/build.yml/badge.svg)](https://github.com/cnopslabs/ocloud/actions/workflows/build.yml)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/cnopslabs/ocloud?sort=semver)
-[![Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/cnopslabs/ocloud/main/.github/badges/downloads.json&style=flat&logo=github&logoColor=white&label=downloads&labelColor=2f363d&color=brightgreen&cacheSeconds=3600)](https://github.com/rozdolsky33/cnopslabs/releases)
-[![Version](https://img.shields.io/badge/goversion-1.20.x-blue.svg)](https://golang.org)
+[![Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/cnopslabs/ocloud/main/.github/badges/downloads.json&style=flat&logo=github&logoColor=white&label=downloads&labelColor=2f363d&color=brightgreen&cacheSeconds=3600)](https://github.com/cnopslabs/releases)
+[![Version](https://img.shields.io/badge/goversion-1.21.x-blue.svg)](https://golang.org)
 [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/cnopslabs/ocloud/main/LICENSE.md)
 [![Go Report Card](https://goreportcard.com/badge/github.com/cnopslabs/ocloud)](https://goreportcard.com/report/github.com/cnopslabs/ocloud)
 [![Go Coverage](https://github.com/cnopslabs/ocloud/wiki/coverage.svg)](https://raw.githack.com/wiki/cnopslabs/ocloud/coverage.html)
-
 ## Overview
 
 OCloud is a powerful command-line interface (CLI) tool designed to simplify interactions with Oracle Cloud Infrastructure (OCI). It provides a streamlined experience for managing compute resources with a focus on usability, performance, and automation capabilities.
@@ -78,7 +77,7 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.4
+	      Version: 0.0.5
 
 Configuration Details: Valid until 2025-08-02 23:26:28
   OCI_CLI_PROFILE: DEFAULT
@@ -128,7 +127,7 @@ OCloud uses the standard OCI configuration file located at `~/.oci/config`. You 
 
 ### Authentication
 
-OCloud provides interactive authentication with OCI through the `config session` command:
+ocloud provides interactive authentication with OCI through the `config session` command:
 
 ```bash
 # Authenticate with OCI
@@ -160,12 +159,16 @@ The refresher script is embedded in the ocloud binary and is automatically extra
 OCloud supports mapping tenancy names to OCIDs using a YAML file located at `~/.oci/.ocloud/tenancy-map.yaml`. The format is:
 
 ```yaml
-- environment: "prod"
-  tenancy: "my-production-tenancy"
-  tenancy_id: "ocid1.tenancy.oc1..aaaaaaaa..."
-  realm: "oc1"
-  compartments: "compartment1,compartment2"
-  regions: "us-ashburn-1,us-phoenix-1"
+- environment: Prod
+  tenancy: cncloudps
+  tenancy_id: ocid1.tenancy.oc1..aaaaaaaawdfste4i8fdsdsdkfasfds
+  realm: OC1
+  compartments:
+    - sandbox
+    - production 
+  regions:
+    - us-chicago-1
+    - us-ashburn-1
 ```
 
 You can override the tenancy map path using the `OCI_TENANCY_MAP_PATH` environment variable.
