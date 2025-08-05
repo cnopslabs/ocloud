@@ -2,7 +2,7 @@
 # shellcheck shell=bash disable=SC1071
 
 # ───────────────────────────────────────────────────────────
-# oci_auth_refresher.sh  •  v0.1.2
+# oci_auth_refresher.sh  •  v0.1.3
 #
 # Keeps an OCI CLI session alive by refreshing it shortly
 # before it expires. Intended to be launched (nohup) from the
