@@ -1,6 +1,7 @@
 package identity
 
 import (
+	"github.com/cnopslabs/ocloud/cmd/identity/bastion"
 	"github.com/cnopslabs/ocloud/cmd/identity/compartment"
 	"github.com/cnopslabs/ocloud/cmd/identity/policy"
 	"github.com/cnopslabs/ocloud/internal/app"
@@ -19,8 +20,8 @@ func NewIdentityCmd(appCtx *app.ApplicationContext) *cobra.Command {
 	}
 
 	// Add subcommands, passing in the ApplicationContext
+	cmd.AddCommand(bastion.NewBastionCmd(appCtx))
 	cmd.AddCommand(compartment.NewCompartmentCmd(appCtx))
 	cmd.AddCommand(policy.NewPolicyCmd(appCtx))
-
 	return cmd
 }

@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+
 	"github.com/cnopslabs/ocloud/internal/logger"
 )
 

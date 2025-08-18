@@ -3,11 +3,12 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // InitializeAppContext checks for help-related flags and initializes the ApplicationContext accordingly.
