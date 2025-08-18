@@ -1,9 +1,10 @@
 package instance
 
 import (
+	"testing"
+
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 // TestServiceStruct tests the basic structure of the Service struct
