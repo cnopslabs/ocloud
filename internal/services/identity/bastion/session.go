@@ -258,6 +258,7 @@ func SpawnDetached(args []string, logfile string) (int, error) {
 		return 0, fmt.Errorf("ssh not found in PATH: %w", err)
 	}
 
+	// Ensure log dir exists
 	if err := os.MkdirAll(filepath.Dir(logfile), 0o755); err != nil {
 		return 0, fmt.Errorf("create log dir: %w", err)
 	}
