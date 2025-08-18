@@ -2,12 +2,13 @@ package info
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	appConfig "github.com/cnopslabs/ocloud/internal/config"
 	"github.com/cnopslabs/ocloud/internal/printer"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/jedib0t/go-pretty/v6/text"
-	"os"
-	"strings"
 )
 
 // PrintMappingsFile displays tenancy mapping information in a formatted table or JSON format.

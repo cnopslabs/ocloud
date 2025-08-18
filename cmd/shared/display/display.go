@@ -3,15 +3,16 @@ package display
 import (
 	"context"
 	"fmt"
-	"github.com/cnopslabs/ocloud/buildinfo"
-	"github.com/cnopslabs/ocloud/internal/config"
-	"github.com/fatih/color"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/cnopslabs/ocloud/buildinfo"
+	"github.com/cnopslabs/ocloud/internal/config"
+	"github.com/fatih/color"
 
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 )
@@ -29,11 +30,6 @@ var expiredRe = regexp.MustCompile(`(?i)^Session has expired\s*$`)
 
 // CheckOCISessionValidity checks the validity of the OCI session
 func CheckOCISessionValidity(profile string) string {
-	// If the profile is not set, don't attempt to validate the session
-	if profile == "" {
-		return redStyle.Sprint("Not set - Please set profile")
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -81,7 +77,7 @@ func CheckOCIAuthRefresherStatus() RefresherStatus {
 		}
 	}
 
-	pidFilePath := filepath.Join(homeDir, flags.OCIConfigDirName, "sessions", profile, "refresher.pid")
+	pidFilePath := filepath.Join(homeDir, flags.OCIConfigDirName, flags.OCISessionsDirName, profile, flags.OCIRefresherPIDFileName)
 
 	pidBytes, err := os.ReadFile(pidFilePath)
 	if err != nil {
@@ -138,13 +134,26 @@ func PrintOCIConfiguration() {
 
 	profile := os.Getenv(flags.EnvKeyProfile)
 
-	sessionStatus := CheckOCISessionValidity(profile)
-	fmt.Printf("%s %s\n", boldStyle.Sprint("Configuration Details:"), sessionStatus)
+	// Handle session status and profile display together to avoid redundancy
+	var sessionStatus string
+	if profile == "" {
+		sessionStatus = redStyle.Sprint("Not set - Please set profile")
+		fmt.Printf("%s %s\n", boldStyle.Sprint("Configuration Details:"), sessionStatus)
+		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyProfile), sessionStatus)
+	} else {
+		sessionStatus = CheckOCISessionValidity(profile)
+		fmt.Printf("%s %s\n", boldStyle.Sprint("Configuration Details:"), sessionStatus)
+		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyProfile), profile)
+	}
+
+	region, err := config.LoadOCIConfig().Region()
 
 	if profile == "" {
-		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyProfile), redStyle.Sprint("Not set - Please set profile"))
+		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyRegion), redStyle.Sprint("Not set - Please set profile first"))
+	} else if err != nil {
+		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyRegion), redStyle.Sprintf("Error loading region: %v", err))
 	} else {
-		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyProfile), profile)
+		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyRegion), region)
 	}
 
 	tenancyName := os.Getenv(flags.EnvKeyTenancyName)
@@ -156,7 +165,7 @@ func PrintOCIConfiguration() {
 
 	compartment := os.Getenv(flags.EnvKeyCompartment)
 	if compartment == "" {
-		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyCompartment), redStyle.Sprint("Not set - Please set compartmen name"))
+		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyCompartment), redStyle.Sprint("Not set - Please set compartment name"))
 	} else {
 		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyCompartment), compartment)
 	}
@@ -165,7 +174,7 @@ func PrintOCIConfiguration() {
 	fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyAutoRefresher), refresherStatus.Display)
 
 	path := config.TenancyMapPath()
-	_, err := os.Stat(path)
+	_, err = os.Stat(path)
 
 	if os.IsNotExist(err) {
 		fmt.Printf("  %s: %s\n", yellowStyle.Sprint(flags.EnvKeyTenancyMapPath), redStyle.Sprint("Not set (file not found)"))

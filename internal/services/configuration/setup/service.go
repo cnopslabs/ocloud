@@ -3,15 +3,16 @@ package setup
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/cnopslabs/ocloud/internal/app"
 	appConfig "github.com/cnopslabs/ocloud/internal/config"
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"gopkg.in/yaml.v3"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 // NewService initializes a new Service instance with the provided application context.

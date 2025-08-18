@@ -2,11 +2,12 @@ package logger
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/cnopslabs/ocloud/cmd/version"
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // SetLogLevel sets the logging level and colored output based on command-line flags or default values.
