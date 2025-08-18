@@ -3,11 +3,12 @@ package policy
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/oracle/oci-go-sdk/v65/identity"
-	"strings"
 )
 
 // NewService initializes a new Service instance with the provided application context.

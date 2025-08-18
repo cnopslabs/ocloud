@@ -2,12 +2,13 @@ package auth
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/printer"
 	"github.com/jedib0t/go-pretty/v6/text"
-	"os"
-	"strings"
 )
 
 // DisplayRegionsTable displays the available OCI regions in a table format.

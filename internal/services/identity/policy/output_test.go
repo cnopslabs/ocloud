@@ -2,11 +2,12 @@ package policy
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 // TestPrintPolicyInfo tests the PrintPolicyInfo function

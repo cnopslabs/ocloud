@@ -1,11 +1,12 @@
 package policy
 
 import (
+	"io"
+	"testing"
+
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"testing"
 )
 
 // TestFindPoliciesSimple is a simplified test for the FindPolicies function
