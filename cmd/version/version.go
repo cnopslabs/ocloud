@@ -2,11 +2,12 @@ package version
 
 import (
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/cnopslabs/ocloud/buildinfo"
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/spf13/cobra"
-	"io"
-	"os"
 )
 
 // VersionInfo encapsulates the version command functionality
