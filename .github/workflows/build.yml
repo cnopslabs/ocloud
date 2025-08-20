@@ -8,6 +8,8 @@ on:
       - "develop"
       - 'feature-*'
       - 'feature/*'
+      - 'refactor/*'
+      - 'refactor-*'
     paths-ignore:
       - 'README.md'
   pull_request:
