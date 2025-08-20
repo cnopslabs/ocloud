@@ -54,11 +54,6 @@ sudo xattr -d com.apple.quarantine ~/.local/bin/ocloud
 chmod +x ~/.local/bin/ocloud
 ```
 
-#### Windows
-
-1. Download the Windows binary from the release page
-2. Add the location to your PATH environment variable
-3. Launch a new console session to apply the updated environment variable
 
 ### Build from Source
 
@@ -88,7 +83,7 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.11
+	      Version: 0.0.12
 
 Configuration Details: Valid until 2025-08-02 23:26:28
   OCI_CLI_PROFILE: DEFAULT
