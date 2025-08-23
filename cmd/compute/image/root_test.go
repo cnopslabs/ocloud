@@ -33,7 +33,7 @@ func TestImageCommand(t *testing.T) {
 	assert.Equal(t, "List all images", listCmd.Short)
 	assert.NotNil(t, listCmd.RunE, "list subcommand should have a RunE function")
 
-	// JSON flag is now a global flag, so it should not be in the local flags for list
+	// JSON flag is now a global flag, so it should not be in the local flags for a list
 	jsonFlag := listCmd.Flags().Lookup(flags.FlagNameJSON)
 	assert.Nil(t, jsonFlag, "json flag should not be added as a local flag to list subcommand")
 

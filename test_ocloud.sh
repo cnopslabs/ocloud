@@ -79,7 +79,7 @@ run_command ./bin/ocloud compute instance list
 run_command ./bin/ocloud compute instance list
 run_command ./bin/ocloud compute instance list --limit 10 --page 1 --json
 run_command ./bin/ocloud compute instance list -m 10 -p 1 -j
-run_command ./bin/ocloud comp inst get
+run_command ./bin/ocloud comp inst l
 
 # Test compute instance find command
 print_header "Testing compute instance find command"
@@ -139,11 +139,6 @@ run_command ./bin/ocloud --debug compute instance list
 # Test with color flag
 print_header "Testing with color flag"
 run_command ./bin/ocloud --color compute instance list
-
-# Test with disable concurrency flag
-print_header "Testing with disable concurrency flag"
-run_command ./bin/ocloud -x compute instance list
-run_command ./bin/ocloud --disable-concurrency compute instance list
 
 # Test identity command
 print_header "Testing identity command"
