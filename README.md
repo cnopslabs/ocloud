@@ -83,7 +83,7 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.12
+	      Version: 0.0.13
 
 Configuration Details: Valid until 2025-08-02 23:26:28
   OCI_CLI_PROFILE: DEFAULT
@@ -112,7 +112,6 @@ Flags:
       --color                 Enable colored log messages.
   -c, --compartment string    OCI compartment name
   -d, --debug                 Enable debug logging
-  -x, --disable-concurrency   Disable concurrency when fetching instance details (use -x to disable concurrency if rate limit is reached for large result sets)
   -h, --help                  help for ocloud (shorthand: -h)
   -j, --json                  Output information in JSON format
       --log-level string      Set the log verbosity debug, (default "info")
