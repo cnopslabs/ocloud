@@ -19,9 +19,6 @@ Whether you're managing instances, working with images, or need to quickly find 
 - Tenancy mapping for friendly tenancy and compartment names
 - Bastion session management: start/attach/terminate OCI Bastion sessions with reachability checks and an interactive SSH key picker (TUI)
 
-### What's New
-
-- Added bastion session management capabilities and interactive SSH key selection to the Identity > Bastion commands
 
 ## Installation
 
