@@ -87,6 +87,7 @@ Running `ocloud` without any arguments displays the configuration details and av
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
+  OCI_REGION: us-ashburn-1
   OCI_TENANCY_NAME: <tenancy_name>
   OCI_COMPARTMENT_NAME: <compartment_name>
   OCI_AUTH_AUTO_REFRESHER: ON [<pid>]
