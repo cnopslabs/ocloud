@@ -6,7 +6,7 @@ import (
 
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/oci"
-	ociinstance "github.com/cnopslabs/ocloud/internal/oci/compute/instance"
+	ociInst "github.com/cnopslabs/ocloud/internal/oci/compute/instance"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 )
 
@@ -21,7 +21,7 @@ func ListInstances(appCtx *app.ApplicationContext, useJSON bool, limit, page int
 		return fmt.Errorf("creating network client: %w", err)
 	}
 
-	instanceAdapter := ociinstance.NewAdapter(computeClient, networkClient)
+	instanceAdapter := ociInst.NewAdapter(computeClient, networkClient)
 	service := NewService(instanceAdapter, appCtx.Logger, appCtx.CompartmentID)
 
 	instances, totalCount, nextPageToken, err := service.List(context.Background(), limit, page)
