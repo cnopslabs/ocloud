@@ -2,8 +2,8 @@
 [![CI Build](https://github.com/cnopslabs/ocloud/actions/workflows/build.yml/badge.svg)](https://github.com/cnopslabs/ocloud/actions/workflows/build.yml)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/cnopslabs/ocloud?sort=semver)
 [![Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/cnopslabs/ocloud/main/.github/badges/downloads.json&style=flat&logo=github&logoColor=white&label=downloads&labelColor=2f363d&color=brightgreen&cacheSeconds=3600)](https://github.com/cnopslabs/ocloud/releases)
-[![Version](https://img.shields.io/badge/goversion-1.21.x-blue.svg)](https://golang.org)
-[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/cnopslabs/ocloud/main/LICENSE.md)
+[![Version](https://img.shields.io/badge/goversion-1.24.x-blue.svg)](https://golang.org)
+[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/cnopslabs/ocloud/main/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/cnopslabs/ocloud)](https://goreportcard.com/report/github.com/cnopslabs/ocloud)
 [![Go Coverage](https://github.com/cnopslabs/ocloud/wiki/coverage.svg)](https://raw.githack.com/wiki/cnopslabs/ocloud/coverage.html)
 ## Overview
@@ -19,9 +19,6 @@ Whether you're managing instances, working with images, or need to quickly find 
 - Tenancy mapping for friendly tenancy and compartment names
 - Bastion session management: start/attach/terminate OCI Bastion sessions with reachability checks and an interactive SSH key picker (TUI)
 
-### What's New
-
-- Added bastion session management capabilities and interactive SSH key selection to the Identity > Bastion commands
 
 ## Installation
 
@@ -83,14 +80,15 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.13
+	      Version: 0.0.14
 
-Configuration Details: Valid until 2025-08-02 23:26:28
+Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
-  OCI_TENANCY_NAME: cloudops
-  OCI_COMPARTMENT_NAME: cnopslabsdev1
-  OCI_AUTH_AUTO_REFRESHER: ON [44123]
-  OCI_TENANCY_MAP_PATH: /Users/<name>/.oci/.ocloud/tenancy-map.yaml
+  OCI_REGION: us-ashburn-1
+  OCI_TENANCY_NAME: <tenancy_name>
+  OCI_COMPARTMENT_NAME: <compartment_name>
+  OCI_AUTH_AUTO_REFRESHER: ON [<pid>]
+  OCI_TENANCY_MAP_PATH: ~/.oci/.ocloud/tenancy-map.yaml
 
 Interact with Oracle Cloud Infrastructure
 
@@ -99,7 +97,6 @@ Usage:
   ocloud [command]
 
 Available Commands:
-  completion  Generate the autocompletion script for the specified shell
   compute     Manage OCI compute services
   config      Manage ocloud CLI configurations file and authentication
   database    Manage OCI Database services
@@ -215,7 +212,7 @@ ocloud config info map-file --realm OC1
 | `--debug` | `-d` | Enable debug logging |
 | `--color` |  | Enable colored output |
 | `--compartment` | `-c` | OCI compartment name |
-| `--disable-concurrency` | `-x` | Disable concurrency when fetching instance details |
+| `--json`  | `-j`  | Output information in JSON format |
 | `--version` | `-v` | Print the version number |
 | `--help` | `-h` | Display help information |
 
@@ -223,10 +220,10 @@ ocloud config info map-file --realm OC1
 
 | Flag      | Short | Description |
 |-----------|-------|-------------|
-| `--json`  | `-j`  | Output information in JSON format |
-| `--all`   | `-A`  | Show all information |
+| `--all`   | `-A`  | Show all information (e.g., more details in compute commands) |
 | `--limit` | `-m`  | Maximum number of records per page (default: 20) |
 | `--page`  | `-p`  | Page number to display (default: 1) |
+| `--sort`  | `-s`  | Sort results by field (e.g., name, cidr) |
 | `--filter` | `-f` | Filter regions by prefix (e.g., us, eu, ap) |
 | `--realm` | `-r` | Filter by realm (e.g., OC1, OC2) |
 
