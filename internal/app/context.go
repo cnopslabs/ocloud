@@ -19,6 +19,18 @@ import (
 	"github.com/cnopslabs/ocloud/internal/logger"
 )
 
+var handleAuthError = func(err error) bool {
+	if err == nil {
+		return false
+	}
+	if serviceErr, ok := err.(common.ServiceError); ok && serviceErr.GetHTTPStatusCode() == 401 {
+		fmt.Fprintf(os.Stderr, "Authentication failed (%d %s). Please run `ocloud config session authenticate` to configure your profile\n", serviceErr.GetHTTPStatusCode(), serviceErr.GetCode())
+		os.Exit(1)
+		return true
+	}
+	return false
+}
+
 // ApplicationContext represents the application with all its clients, configuration, and resolved IDs.
 // It holds all the components needed for command execution.
 type ApplicationContext struct {
@@ -41,7 +53,10 @@ func InitApp(ctx context.Context, cmd *cobra.Command) (*ApplicationContext, erro
 
 	identityClient, err := oci.NewIdentityClient(provider)
 	if err != nil {
-		return nil, err
+		if !handleAuthError(err) {
+			fmt.Fprintf(os.Stderr, "Authentication failed. Please run `ocloud config session authenticate` to configure your profile\n")
+			os.Exit(1)
+		}
 	}
 
 	configureClientRegion(identityClient)
@@ -57,7 +72,7 @@ func InitApp(ctx context.Context, cmd *cobra.Command) (*ApplicationContext, erro
 	appCtx.Stderr = os.Stderr
 
 	if err := resolveTenancyAndCompartment(ctx, cmd, appCtx); err != nil {
-		return nil, fmt.Errorf("resolving tenancy and compartment: %w", err)
+		return nil, fmt.Errorf("resolving tenancy and compartment %w", err)
 	}
 
 	logger.CmdLogger.V(logger.Debug).Info("Application context initialized successfully.")
@@ -211,7 +226,9 @@ func resolveCompartmentID(ctx context.Context, appCtx *ApplicationContext) (stri
 
 		resp, err := idClient.ListCompartments(ctx, req)
 		if err != nil {
-			return "", fmt.Errorf("listing compartments: %w", err)
+			if !handleAuthError(err) {
+				return "", fmt.Errorf("listing compartments: %w", err)
+			}
 		}
 
 		// scan each compartment summary for a name match
