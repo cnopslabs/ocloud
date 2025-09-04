@@ -15,9 +15,13 @@ Whether you're managing instances, working with images, or need to quickly find 
 ## Features
 
 - Manage compute instances, images, and OKE resources
+- Manage identity resources: compartments and policies
+- Manage networking resources: subnets
+- Manage database resources: Autonomous Databases
 - Interactive configuration and OCI Auth Refresher to keep sessions alive
 - Tenancy mapping for friendly tenancy and compartment names
 - Bastion session management: start/attach/terminate OCI Bastion sessions with reachability checks and an interactive SSH key picker (TUI)
+- Consistent JSON output (-j/--json) and list pagination/sorting flags across commands
 
 
 ## Installation
@@ -80,7 +84,7 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.16
+	      Version: 0.0.17
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
