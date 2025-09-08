@@ -1,7 +1,7 @@
 package image
 
 import (
-	paginationFlags "github.com/cnopslabs/ocloud/cmd/flags"
+	imageFlags "github.com/cnopslabs/ocloud/cmd/flags"
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
@@ -53,16 +53,16 @@ func NewGetCmd(appCtx *app.ApplicationContext) *cobra.Command {
 		},
 	}
 
-	paginationFlags.LimitFlag.Add(cmd)
-	paginationFlags.PageFlag.Add(cmd)
+	imageFlags.LimitFlag.Add(cmd)
+	imageFlags.PageFlag.Add(cmd)
 
 	return cmd
 }
 
 // RunGetCommand handles the execution of the list command
 func RunGetCommand(cmd *cobra.Command, appCtx *app.ApplicationContext) error {
-	limit := flags.GetIntFlag(cmd, flags.FlagNameLimit, paginationFlags.FlagDefaultLimit)
-	page := flags.GetIntFlag(cmd, flags.FlagNamePage, paginationFlags.FlagDefaultPage)
+	limit := flags.GetIntFlag(cmd, flags.FlagNameLimit, imageFlags.FlagDefaultLimit)
+	page := flags.GetIntFlag(cmd, flags.FlagNamePage, imageFlags.FlagDefaultPage)
 	useJSON := flags.GetBoolFlag(cmd, flags.FlagNameJSON, false)
 	logger.LogWithLevel(logger.CmdLogger, logger.Debug, "Running image list command in", "compartment", appCtx.CompartmentName, "limit", limit, "page", page, "json", useJSON)
 	return image.GetImages(appCtx, limit, page, useJSON)
