@@ -147,11 +147,11 @@ run_command ./bin/ocloud identity compart --help
 run_command ./bin/ocloud ident compart --help
 
 # Test identity compartment list command
-print_header "Testing identity compartment list command"
-run_command ./bin/ocloud identity compartment list
-run_command ./bin/ocloud identity compartment list --limit 10 --page 1 --json
-run_command ./bin/ocloud identity compartment list -m 10 -p 1 -j
-run_command ./bin/ocloud ident compart l
+print_header "Testing identity compartment get command"
+run_command ./bin/ocloud identity compartment get
+run_command ./bin/ocloud identity compartment get --limit 10 --page 1 --json
+run_command ./bin/ocloud identity compartment get -m 10 -p 1 -j
+
 
 # Test identity compartment find command
 print_header "Testing identity compartment find command"
@@ -166,13 +166,12 @@ run_command ./bin/ocloud identity policy --help
 run_command ./bin/ocloud identity pol --help
 run_command ./bin/ocloud ident pol --help
 
-# Test identity policy list command
-print_header "Testing identity policy list command"
-run_command ./bin/ocloud identity policy list
-run_command ./bin/ocloud identity policy list
-run_command ./bin/ocloud identity policy list --limit 10 --page 1 --json
-run_command ./bin/ocloud identity policy list -m 10 -p 1 -j
-run_command ./bin/ocloud ident pol l
+# Test identity policy get command
+print_header "Testing identity policy get command"
+run_command ./bin/ocloud identity policy get
+run_command ./bin/ocloud identity policy get
+run_command ./bin/ocloud identity policy get --limit 10 --page 1 --json
+run_command ./bin/ocloud identity policy get -m 10 -p 1 -j
 
 # Test identity policy find command
 print_header "Testing identity policy find command"
