@@ -84,7 +84,7 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.18
+	      Version: 0.0.19
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
