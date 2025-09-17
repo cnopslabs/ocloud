@@ -84,7 +84,7 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.18
+	      Version: 0.0.19
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
@@ -110,15 +110,17 @@ Available Commands:
   version     Print the version information
 
 Flags:
-      --color                 Enable colored log messages.
-  -c, --compartment string    OCI compartment name
-  -d, --debug                 Enable debug logging
-  -h, --help                  help for ocloud (shorthand: -h)
-  -j, --json                  Output information in JSON format
-      --log-level string      Set the log verbosity debug, (default "info")
-  -t, --tenancy-id string     OCI tenancy OCID
-      --tenancy-name string   Tenancy name
-  -v, --version               Print the version number of ocloud CLI
+      --color                     Enable colored log messages.
+  -c, --compartment string        OCI compartment name
+  -d, --debug                     Enable debug logging
+  -h, --help                      help for ocloud (shorthand: -h)
+  -j, --json                      Output information in JSON format
+      --log-level string          Set the log verbosity debug, (default "info")
+      --scope string              Listing scope: compartment or tenancy
+  -T, --tenancy-scope             Shortcut: list at tenancy level (overrides --scope)
+  -t, --tenancy-id string         OCI tenancy OCID
+      --tenancy-name string       Tenancy name
+  -v, --version                   Print the version number of ocloud CLI
 ```
 
 OCloud can be configured in multiple ways, with the following precedence (highest to lowest):
@@ -191,6 +193,34 @@ ocloud config info map-file --json
 # Filter by realm
 ocloud config info map-file --realm OC1
 ```
+
+### Scope: Compartment vs Tenancy
+
+Some identity commands can operate at different scopes:
+- compartment (default): Operates within the currently selected compartment.
+- tenancy: Operates across the entire tenancy.
+
+You can control this with:
+- --scope: Choose either "compartment" (default) or "tenancy".
+- -T/--tenancy-scope: Shortcut to force tenancy-level behavior. This overrides --scope.
+
+Examples:
+
+- List all compartments in tenancy:
+  ocloud identity compartment list --scope tenancy
+  # or using the shortcut
+  ocloud identity compartment list -T
+
+- Find a compartment by name in the entire tenancy:
+  ocloud identity compartment find prod --scope tenancy
+
+- List policies at the tenancy level:
+  ocloud identity policy list --scope tenancy
+
+- Default behavior (compartment scope):
+  ocloud identity policy list --scope compartment
+
+Tip: These flags are particularly relevant for identity commands (compartment, policy), and may appear in other commands that support multiple scopes.
 
 ### Environment Variables
 

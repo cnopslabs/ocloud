@@ -1,7 +1,7 @@
 package instance
 
 import (
-	instaceFlags "github.com/cnopslabs/ocloud/cmd/flags"
+	instaceFlags "github.com/cnopslabs/ocloud/cmd/shared/flags"
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
