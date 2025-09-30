@@ -7,7 +7,7 @@ import (
 
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/oci/identity/compartment"
-	"github.com/cnopslabs/ocloud/internal/tui/listx"
+	"github.com/cnopslabs/ocloud/internal/tui"
 )
 
 func ListCompartments(appCtx *app.ApplicationContext, ocid string, useJSON bool) error {
@@ -22,9 +22,9 @@ func ListCompartments(appCtx *app.ApplicationContext, ocid string, useJSON bool)
 
 	//TUI
 	model := compartment.NewPoliciesListModel(compartments)
-	id, err := listx.Run(model)
+	id, err := tui.Run(model)
 	if err != nil {
-		if errors.Is(err, listx.ErrCancelled) {
+		if errors.Is(err, tui.ErrCancelled) {
 			return nil
 		}
 		return fmt.Errorf("selecting compartment: %w", err)

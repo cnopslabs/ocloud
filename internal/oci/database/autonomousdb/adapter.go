@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cnopslabs/ocloud/internal/domain"
+	domain "github.com/cnopslabs/ocloud/internal/domain/database"
 	"github.com/cnopslabs/ocloud/internal/oci"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/core"
@@ -208,7 +208,7 @@ func (a *Adapter) toDomainAutonomousDB(ociObj interface{}) domain.AutonomousData
 		dbWorkloadStr   string
 		licenseModelStr string
 
-		// networking
+		// network
 		whitelistedIps       []string
 		privateEndpoint      *string
 		privateEndpointIp    *string
@@ -343,7 +343,7 @@ func (a *Adapter) toDomainAutonomousDB(ociObj interface{}) domain.AutonomousData
 	d.DbWorkload = dbWorkloadStr
 	d.LicenseModel = licenseModelStr
 
-	// networking
+	// network
 	d.WhitelistedIps = whitelistedIps
 	if privateEndpoint != nil {
 		d.PrivateEndpoint = *privateEndpoint

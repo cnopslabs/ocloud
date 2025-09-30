@@ -14,9 +14,9 @@ Whether you're managing instances, working with images, or need to quickly find 
 
 ## Features
 
-- Manage compute instances, images, and OKE resources
-- Manage identity resources: compartments and policies
-- Manage networking resources: subnets
+- Manage compute resources: Instances, Images, and OKE clusters
+- Manage identity resources: Compartments and Policies
+- Manage networking resources: VCNs, Subnets, and Load Balancers
 - Manage database resources: Autonomous Databases
 - Interactive configuration and OCI Auth Refresher to keep sessions alive
 - Tenancy mapping for friendly tenancy and compartment names
@@ -84,7 +84,7 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.19
+	      Version: 0.0.20
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT

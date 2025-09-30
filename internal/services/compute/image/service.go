@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cnopslabs/ocloud/internal/domain"
+	"github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/go-logr/logr"
@@ -13,13 +13,13 @@ import (
 
 // Service is the application-layer service for image operations.
 type Service struct {
-	imageRepo     domain.ImageRepository
+	imageRepo     compute.ImageRepository
 	logger        logr.Logger
 	compartmentID string
 }
 
 // NewService initializes a new Service instance.
-func NewService(repo domain.ImageRepository, logger logr.Logger, compartmentID string) *Service {
+func NewService(repo compute.ImageRepository, logger logr.Logger, compartmentID string) *Service {
 	return &Service{
 		imageRepo:     repo,
 		logger:        logger,
@@ -94,7 +94,7 @@ func (s *Service) Find(ctx context.Context, searchPattern string) ([]Image, erro
 }
 
 // mapToIndexableImage converts a domain.Image to a struct suitable for indexing.
-func mapToIndexableImage(img domain.Image) any {
+func mapToIndexableImage(img compute.Image) any {
 	return struct {
 		Name                   string
 		OperatingSystem        string

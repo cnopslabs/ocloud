@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cnopslabs/ocloud/internal/app"
-	"github.com/cnopslabs/ocloud/internal/domain"
+	"github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/cnopslabs/ocloud/internal/printer"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 )
@@ -48,7 +48,7 @@ type Resources struct {
 }
 
 // PrintInstancesInfo displays instances in a formatted table or JSON format.
-func PrintInstancesInfo(instances []domain.Instance, appCtx *app.ApplicationContext, pagination *util.PaginationInfo, useJSON bool, showImageDetails bool) error {
+func PrintInstancesInfo(instances []compute.Instance, appCtx *app.ApplicationContext, pagination *util.PaginationInfo, useJSON bool, showImageDetails bool) error {
 	p := printer.New(appCtx.Stdout)
 
 	if pagination != nil {
@@ -139,7 +139,7 @@ func PrintInstancesInfo(instances []domain.Instance, appCtx *app.ApplicationCont
 	return nil
 }
 
-func PrintInstanceInfo(instance *domain.Instance, appCtx *app.ApplicationContext, useJSON bool, showDetails bool) error {
+func PrintInstanceInfo(instance *compute.Instance, appCtx *app.ApplicationContext, useJSON bool, showDetails bool) error {
 	p := printer.New(appCtx.Stdout)
 
 	if instance == nil {
