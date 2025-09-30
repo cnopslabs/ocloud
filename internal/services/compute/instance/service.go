@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cnopslabs/ocloud/internal/domain"
+	"github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/go-logr/logr"
@@ -13,13 +13,13 @@ import (
 
 // Service is the application-layer service, for instance, operations.
 type Service struct {
-	instanceRepo  domain.InstanceRepository
+	instanceRepo  compute.InstanceRepository
 	logger        logr.Logger
 	compartmentID string
 }
 
 // NewService initializes a new Service instance.
-func NewService(repo domain.InstanceRepository, logger logr.Logger, compartmentID string) *Service {
+func NewService(repo compute.InstanceRepository, logger logr.Logger, compartmentID string) *Service {
 	return &Service{
 		instanceRepo:  repo,
 		logger:        logger,
@@ -111,7 +111,7 @@ func (s *Service) Find(ctx context.Context, searchPattern string) ([]Instance, e
 }
 
 // mapToIndexableInstance converts a domain.Instance to a struct suitable for indexing.
-func mapToIndexableInstance(inst domain.Instance) any {
+func mapToIndexableInstance(inst compute.Instance) any {
 	return struct {
 		Name      string
 		PrimaryIP string

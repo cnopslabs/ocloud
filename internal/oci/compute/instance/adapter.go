@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cnopslabs/ocloud/internal/domain"
+	domain "github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/core"
 )

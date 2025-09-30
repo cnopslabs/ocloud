@@ -1,6 +1,8 @@
 package image
 
-import "github.com/cnopslabs/ocloud/internal/domain"
+import (
+	"github.com/cnopslabs/ocloud/internal/domain/compute"
+)
 
 // Image is an alias to the domain model.
-type Image = domain.Image
+type Image = compute.Image

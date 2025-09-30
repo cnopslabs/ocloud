@@ -8,7 +8,7 @@ import (
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/oci"
 	ociInst "github.com/cnopslabs/ocloud/internal/oci/compute/instance"
-	"github.com/cnopslabs/ocloud/internal/tui/listx"
+	"github.com/cnopslabs/ocloud/internal/tui"
 )
 
 // ListInstances lists instances in a formatted table or JSON format.
@@ -36,9 +36,9 @@ func ListInstances(appCtx *app.ApplicationContext, useJSON bool) error {
 
 	//TUI
 	model := ociInst.NewImageListModel(allInstances)
-	id, err := listx.Run(model)
+	id, err := tui.Run(model)
 	if err != nil {
-		if errors.Is(err, listx.ErrCancelled) {
+		if errors.Is(err, tui.ErrCancelled) {
 			return nil
 		}
 		return fmt.Errorf("selecting instance: %w", err)

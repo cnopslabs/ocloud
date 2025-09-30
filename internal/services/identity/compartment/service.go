@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cnopslabs/ocloud/internal/domain"
+	"github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/go-logr/logr"
@@ -14,14 +14,14 @@ import (
 // Service is the application-layer service for compartment operations.
 // It depends on the domain repository for data access.
 type Service struct {
-	compartmentRepo domain.CompartmentRepository
+	compartmentRepo identity.CompartmentRepository
 	logger          logr.Logger
 	compartmentID   string
 }
 
 // NewService initializes and returns a new Service instance.
 // It injects the domain repository, decoupling the service from the infrastructure layer.
-func NewService(repo domain.CompartmentRepository, logger logr.Logger, ocid string) *Service {
+func NewService(repo identity.CompartmentRepository, logger logr.Logger, ocid string) *Service {
 	return &Service{
 		compartmentRepo: repo,
 		logger:          logger,

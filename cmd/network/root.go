@@ -1,7 +1,9 @@
 package network
 
 import (
+	lbcmd "github.com/cnopslabs/ocloud/cmd/network/loadbalancer"
 	"github.com/cnopslabs/ocloud/cmd/network/subnet"
+	vcncmd "github.com/cnopslabs/ocloud/cmd/network/vcn"
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/spf13/cobra"
 )
@@ -11,13 +13,15 @@ func NewNetworkCmd(appCtx *app.ApplicationContext) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "network",
 		Aliases:       []string{"net"},
-		Short:         "Manage OCI networking services",
+		Short:         "Manage OCI network services",
 		Long:          "Manage Oracle Cloud Infrastructure Networking services such as vcn, subnets and more.",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 
 	cmd.AddCommand(subnet.NewSubnetCmd(appCtx))
+	cmd.AddCommand(vcncmd.NewVcnCmd(appCtx))
+	cmd.AddCommand(lbcmd.NewLoadBalancerCmd(appCtx))
 
 	return cmd
 }

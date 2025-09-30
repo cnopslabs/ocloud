@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cnopslabs/ocloud/internal/domain"
+	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/identity"
 )
