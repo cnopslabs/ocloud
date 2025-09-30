@@ -5,20 +5,20 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cnopslabs/ocloud/internal/domain"
+	"github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/go-logr/logr"
 )
 
 // Service is the application-layer service for OKE operations.
 type Service struct {
-	clusterRepo   domain.ClusterRepository
+	clusterRepo   compute.ClusterRepository
 	logger        logr.Logger
 	compartmentID string
 }
 
 // NewService initializes a new Service instance.
-func NewService(repo domain.ClusterRepository, logger logr.Logger, compartmentID string) *Service {
+func NewService(repo compute.ClusterRepository, logger logr.Logger, compartmentID string) *Service {
 	return &Service{
 		clusterRepo:   repo,
 		logger:        logger,

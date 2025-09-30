@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cnopslabs/ocloud/internal/domain"
+	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/oracle/oci-go-sdk/v65/identity"
 )
 

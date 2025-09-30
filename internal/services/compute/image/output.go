@@ -2,7 +2,7 @@ package image
 
 import (
 	"github.com/cnopslabs/ocloud/internal/app"
-	"github.com/cnopslabs/ocloud/internal/domain"
+	"github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/cnopslabs/ocloud/internal/printer"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 )
@@ -47,7 +47,7 @@ func PrintImagesInfo(images []Image, appCtx *app.ApplicationContext, pagination 
 }
 
 // PrintImageInfo prints a detailed view of an image.
-func PrintImageInfo(image *domain.Image, appCtx *app.ApplicationContext, useJSON bool) error {
+func PrintImageInfo(image *compute.Image, appCtx *app.ApplicationContext, useJSON bool) error {
 	p := printer.New(appCtx.Stdout)
 
 	if useJSON {

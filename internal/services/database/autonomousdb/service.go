@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/cnopslabs/ocloud/internal/app"
-	"github.com/cnopslabs/ocloud/internal/domain"
+	"github.com/cnopslabs/ocloud/internal/domain/database"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/go-logr/logr"
@@ -14,13 +14,13 @@ import (
 
 // Service provides operations and functionalities related to database management, logging, and compartment handling.
 type Service struct {
-	repo          domain.AutonomousDatabaseRepository
+	repo          database.AutonomousDatabaseRepository
 	logger        logr.Logger
 	compartmentID string
 }
 
 // NewService initializes a new Service instance with the provided application context.
-func NewService(repo domain.AutonomousDatabaseRepository, appCtx *app.ApplicationContext) *Service {
+func NewService(repo database.AutonomousDatabaseRepository, appCtx *app.ApplicationContext) *Service {
 	return &Service{
 		repo:          repo,
 		logger:        appCtx.Logger,
@@ -95,7 +95,7 @@ func (s *Service) Find(ctx context.Context, searchPattern string) ([]AutonomousD
 		return nil, fmt.Errorf("failed to fetch all databases: %w", err)
 	}
 	// 2: Build index
-	index, err := util.BuildIndex(allDatabases, func(db domain.AutonomousDatabase) any {
+	index, err := util.BuildIndex(allDatabases, func(db database.AutonomousDatabase) any {
 		return mapToIndexableDatabase(db)
 	})
 
@@ -119,7 +119,7 @@ func (s *Service) Find(ctx context.Context, searchPattern string) ([]AutonomousD
 	return results, nil
 }
 
-func mapToIndexableDatabase(db domain.AutonomousDatabase) IndexableAutonomousDatabase {
+func mapToIndexableDatabase(db database.AutonomousDatabase) IndexableAutonomousDatabase {
 	return IndexableAutonomousDatabase{
 		Name: db.Name,
 	}
