@@ -3,10 +3,10 @@ package policy
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/cnopslabs/ocloud/internal/logger"
+	"github.com/cnopslabs/ocloud/internal/services/search"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/go-logr/logr"
 )
@@ -26,27 +26,14 @@ func NewService(repo identity.PolicyRepository, logger logr.Logger, ocid string)
 	}
 }
 
-func (s *Service) FetchPaginatedPolies(ctx context.Context, limit, pageNum int) ([]identity.Policy, int, string, error) {
+func (s *Service) FetchPaginatedPolies(ctx context.Context, limit, pageNum int) ([]Policy, int, string, error) {
 	s.logger.V(logger.Debug).Info("listing policies", "limit", limit, "pageNum", pageNum)
 
 	allPolicies, err := s.policyRepo.ListPolicies(ctx, s.CompartmentID)
 	if err != nil {
 		return nil, 0, "", fmt.Errorf("listing policies from repository: %w", err)
 	}
-	totalCount := len(allPolicies)
-	start := (pageNum - 1) * limit
-	end := start + limit
-	if start >= totalCount {
-		return []identity.Policy{}, totalCount, "", nil
-	}
-	if end > totalCount {
-		end = totalCount
-	}
-	pagedResults := allPolicies[start:end]
-	var nextPageToken string
-	if end < totalCount {
-		nextPageToken = fmt.Sprintf("%d", pageNum+1)
-	}
+	pagedResults, totalCount, nextPageToken := util.PaginateSlice(allPolicies, limit, pageNum)
 	s.logger.V(logger.Debug).Info("completed policy listing", "returnedCount", len(pagedResults), "totalCount", totalCount)
 	return pagedResults, totalCount, nextPageToken, nil
 }
@@ -60,55 +47,37 @@ func (s *Service) ListPolicies(ctx context.Context) ([]identity.Policy, error) {
 	return policies, nil
 }
 
-// Find performs a fuzzy search for policies based on the provided searchPattern and returns matching policy.
-func (s *Service) Find(ctx context.Context, searchPattern string) ([]identity.Policy, error) {
-	logger.LogWithLevel(s.logger, logger.Debug, "Finding Policies", "pattern", searchPattern)
-	var allPolicies []identity.Policy
+// FuzzySearch performs a fuzzy search for policies based on the provided search pattern and returns matching policies.
+func (s *Service) FuzzySearch(ctx context.Context, searchPattern string) ([]identity.Policy, error) {
+	s.logger.V(logger.Debug).Info("finding policies with fuzzy search", "pattern", searchPattern)
 
-	// 1. Fetch all policies in the compartment
 	allPolicies, err := s.policyRepo.ListPolicies(ctx, s.CompartmentID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch all policies: %w", err)
+		return nil, fmt.Errorf("fetching all policies for search: %w", err)
 	}
 
-	// 2. Build index
-	index, err := util.BuildIndex(allPolicies, func(p identity.Policy) any {
-		return mapToIndexablePolicy(p)
-	})
-
+	// Build the search index using the common search package and the policy searcher adapter.
+	indexables := ToSearchablePolicies(allPolicies)
+	idxMapping := search.NewIndexMapping(GetSearchableFields())
+	idx, err := search.BuildIndex(indexables, idxMapping)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build index: %w", err)
+		return nil, fmt.Errorf("building search index: %w", err)
 	}
 
-	// 3. Fuzzy search on multiple files
-	fields := []string{"Name", "Description", "Statement", "Tags", "TagValues"}
-	matchedIdxs, err := util.FuzzySearchIndex(index, strings.ToLower(searchPattern), fields)
+	s.logger.V(logger.Debug).Info("search index built successfully", "numEntries", len(allPolicies))
+
+	matchedIdxs, err := search.FuzzySearch(idx, searchPattern, GetSearchableFields(), GetBoostedFields())
 	if err != nil {
-		return nil, fmt.Errorf("failed to fuzzy search index: %w", err)
+		return nil, fmt.Errorf("performing fuzzy search: %w", err)
 	}
+	s.logger.V(logger.Debug).Info("fuzzy search completed", "numMatches", len(matchedIdxs))
 
-	var matchedPolicies []identity.Policy
-	for _, idx := range matchedIdxs {
-		if idx >= 0 && idx < len(allPolicies) {
-			matchedPolicies = append(matchedPolicies, allPolicies[idx])
+	results := make([]identity.Policy, 0, len(matchedIdxs))
+	for _, i := range matchedIdxs {
+		if i >= 0 && i < len(allPolicies) {
+			results = append(results, allPolicies[i])
 		}
 	}
 
-	logger.LogWithLevel(s.logger, logger.Trace, "Found policies", "count", len(matchedPolicies))
-	return matchedPolicies, nil
-}
-
-// mapToIndexablePolicy transforms a Policy object into an IndexablePolicy object with indexed and searchable fields.
-func mapToIndexablePolicy(p identity.Policy) IndexablePolicy {
-	flattenedTags, _ := util.FlattenTags(p.FreeformTags, p.DefinedTags)
-	tagValues, _ := util.ExtractTagValues(p.FreeformTags, p.DefinedTags)
-	joinedStatements := strings.Join(p.Statement, " ") // Concatenate all the statements into one string for fuzzy search/indexing.
-	return IndexablePolicy{
-		Name:        p.Name,
-		Description: p.Description,
-		Statement:   joinedStatements,
-		Tags:        flattenedTags,
-		TagValues:   tagValues,
-	}
-
+	return results, nil
 }
