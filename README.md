@@ -8,7 +8,7 @@
 [![Go Coverage](https://github.com/cnopslabs/ocloud/wiki/coverage.svg)](https://raw.githack.com/wiki/cnopslabs/ocloud/coverage.html)
 ## Overview
 
-OCloud is a powerful command-line interface (CLI) tool designed to simplify interactions with Oracle Cloud Infrastructure (OCI). It provides a streamlined experience for managing compute resources with a focus on usability, performance, and automation capabilities.
+OCloud is a powerful command-line interface (CLI) tool designed to simplify interactions with Oracle Cloud Infrastructure (OCI). It provides a streamlined experience for managing common OCI services—including compute, identity, networking, and database with a focus on usability, performance, and automation.
 
 Whether you're managing instances, working with images, or need to quickly find resources across your OCI environment, OCloud offers an intuitive and efficient interface that works seamlessly with your existing OCI configuration.
 
@@ -17,23 +17,14 @@ Whether you're managing instances, working with images, or need to quickly find 
 - Manage compute resources: Instances, Images, and OKE (Kubernetes) clusters and node pools
 - Manage networking resources: Virtual Cloud Networks (VCNs), Subnets, Load Balancers, and related components
 - Manage storage resources: Object Storage Buckets (list via TUI and paginated get)
-- Manage identity resources: Compartments, Policies, and Bastion sessions
-- Manage database resources: Autonomous Databases
 - Powerful find/search commands using Bleve for fuzzy, prefix, and substring matching where applicable
 - Interactive configuration and an OCI Auth Refresher to keep sessions alive
 - Tenancy mapping for friendly tenancy and compartment names
 - Bastion session management: start/attach/terminate OCI Bastion sessions with reachability checks and an interactive SSH key picker (TUI)
 - Consistent JSON output, unified pagination across services, and short/long flag aliases
-- Built-in security in CI: govulncheck vulnerability scanning via `make vuln` and GitHub Actions
 
 
 ## Installation
-
-Before you begin
-
-Prerequisites:
-- OCI CLI (oci): https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm
-- kubectl (optional; required for OKE interactions): https://kubernetes.io/docs/tasks/tools/
 
 OCloud can be installed in several ways:
 
@@ -79,11 +70,12 @@ make build
 make install
 ```
 
-For detailed installation instructions, see the [Installation Guide](docs/installation.md).
 
 ## Configuration
 
-Running `ocloud` without any arguments displays the configuration details and available commands:
+Running `ocloud` without any arguments displays the configuration details and available commands.
+
+Example output (values will vary by version, time, and your environment):
 
 ```
  ██████╗  ██████╗██╗      ██████╗ ██╗   ██╗██████╗
@@ -93,15 +85,14 @@ Running `ocloud` without any arguments displays the configuration details and av
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: 0.0.20
+	      Version: v0.1.0
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
-  OCI_REGION: us-ashburn-1
-  OCI_TENANCY_NAME: <tenancy_name>
-  OCI_COMPARTMENT_NAME: <compartment_name>
+  OCI_TENANCY_NAME: cloudops
+  OCI_COMPARTMENT_NAME: cnopslabsdev1
   OCI_AUTH_AUTO_REFRESHER: ON [<pid>]
-  OCI_TENANCY_MAP_PATH: ~/.oci/.ocloud/tenancy-map.yaml
+  OCI_TENANCY_MAP_PATH: /Users/<name>/.oci/.ocloud/tenancy-map.yaml
 
 Interact with Oracle Cloud Infrastructure
 
@@ -119,17 +110,15 @@ Available Commands:
   version     Print the version information
 
 Flags:
-      --color                     Enable colored log messages.
-  -c, --compartment string        OCI compartment name
-  -d, --debug                     Enable debug logging
-  -h, --help                      help for ocloud (shorthand: -h)
-  -j, --json                      Output information in JSON format
-      --log-level string          Set the log verbosity debug, (default "info")
-      --scope string              Listing scope: compartment or tenancy
-  -T, --tenancy-scope             Shortcut: list at tenancy level (overrides --scope)
-  -t, --tenancy-id string         OCI tenancy OCID
-      --tenancy-name string       Tenancy name
-  -v, --version                   Print the version number of ocloud CLI
+      --color                 Enable colored log messages.
+  -c, --compartment string    OCI compartment name
+  -d, --debug                 Enable debug logging
+  -h, --help                  help for ocloud (shorthand: -h)
+  -j, --json                  Output information in JSON format
+      --log-level string      Set the log verbosity debug, (default "info")
+  -t, --tenancy-id string     OCI tenancy OCID
+      --tenancy-name string   Tenancy name
+  -v, --version               Print the version number of ocloud CLI
 ```
 
 OCloud can be configured in multiple ways, with the following precedence (highest to lowest):
@@ -144,7 +133,7 @@ OCloud uses the standard OCI configuration file located at `~/.oci/config`. You 
 
 ### Authentication
 
-ocloud provides interactive authentication with OCI through the `config session` command:
+ocloud provides interactive authentication with OCI through the `config session` command. You can also control which browser is used during the login flow; see docs/auth-browser-selection.md for details:
 
 ```bash
 # Authenticate with OCI
@@ -203,113 +192,6 @@ ocloud config info map-file --json
 ocloud config info map-file --realm OC1
 ```
 
-### Scope: Compartment vs Tenancy
-
-Some identity commands can operate at different scopes:
-- compartment (default): Operates within the currently selected compartment.
-- tenancy: Operates across the entire tenancy.
-
-You can control this with:
-- --scope: Choose either "compartment" (default) or "tenancy".
-- -T/--tenancy-scope: Shortcut to force tenancy-level behavior. This overrides --scope.
-
-Examples:
-
-- List all compartments in tenancy:
-  ocloud identity compartment list --scope tenancy
-  # or using the shortcut
-  ocloud identity compartment list -T
-
-- Find a compartment by name in the entire tenancy:
-  ocloud identity compartment find prod --scope tenancy
-
-- List policies at the tenancy level:
-  ocloud identity policy list --scope tenancy
-
-- Default behavior (compartment scope):
-  ocloud identity policy list --scope compartment
-
-Tip: These flags are particularly relevant for identity commands (compartment, policy), and may appear in other commands that support multiple scopes.
-
-### Networking: VCN commands
-
-The network VCN group provides commands to get and find Virtual Cloud Networks in the configured compartment. You can include related networking resources using the network toggles shown below or the --all (-A) flag to include everything at once.
-
-Examples:
-
-- Get VCNs with pagination
-  - ocloud network vcn get
-  - ocloud network vcn get --limit 10 --page 2
-  - ocloud network vcn get -m 5 -p 3 --all
-  - ocloud network vcn get -m 5 -p 3 -A -j
-
-- Search VCNs by pattern
-  - ocloud network vcn search prod
-  - ocloud network vcn search prod --all
-  - ocloud network vcn search prod -A -j
-
-Interactive list (TUI):
-- ocloud network vcn list
-  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
-
-#### Network resource toggles (used by networking commands)
-
-| Flag                | Short | Description                                 |
-|---------------------|-------|---------------------------------------------|
-| `--gateway`         | `-G`  | Include/display internet/NAT gateways       |
-| `--subnet`          | `-S`  | Include/display subnets                     |
-| `--nsg`             | `-N`  | Include/display network security groups     |
-| `--route-table`     | `-R`  | Include/display route tables                |
-| `--security-list`   | `-L`  | Include/display security lists              |
-
-### Networking: Load Balancer commands
-
-Manage and explore Load Balancers in the configured compartment. You can:
-- Get paginated lists with optional extra columns using --all (-A)
-- Search using fuzzy, prefix, token, and substring matching across multiple fields
-- Launch an interactive list (TUI) to search and select a Load Balancer
-
-Examples:
-
-- Get Load Balancers with pagination
-  - ocloud network loadbalancer get
-  - ocloud network loadbalancer get --limit 10 --page 2
-  - ocloud network loadbalancer get --all
-  - ocloud net lb get -A -j
-
-- Search Load Balancers by pattern
-  - ocloud network loadbalancer search prod
-  - ocloud network loadbalancer search prod --json
-  - ocloud network loadbalancer search prod --all
-  - ocloud net lb s prod -A -j
-
-Interactive list (TUI):
-- ocloud network loadbalancer list
-  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
-
-### Storage: Object Storage commands
-
-Manage and explore Object Storage Buckets in the configured compartment. You can:
-- Get paginated lists with optional extended details using --all (-A)
-- Launch an interactive list (TUI) to search and select a Bucket
-
-Examples:
-
-- Get Buckets with pagination
-  - ocloud storage object-storage get
-  - ocloud storage object-storage get --limit 10 --page 2
-  - ocloud storage object-storage get --all
-  - ocloud storage os get -A -j
-
-- Search Buckets by pattern
-  - ocloud storage object-storage search prod
-  - ocloud storage object-storage search prod --json
-  - ocloud storage os s prod -j
-
-Interactive list (TUI):
-- ocloud storage object-storage list
-  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
-
 ### Environment Variables
 
 | Variable | Description |
@@ -330,24 +212,124 @@ Interactive list (TUI):
 |------|-------|-------------|
 | `--tenancy-id` | `-t` | OCI tenancy OCID |
 | `--tenancy-name` |  | Tenancy name |
-| `--log-level` |  | Set the log verbosity (debug, info, warn, error) |
+| `--log-level` |  | Set the log verbosity (e.g., info, debug) |
 | `--debug` | `-d` | Enable debug logging |
 | `--color` |  | Enable colored output |
 | `--compartment` | `-c` | OCI compartment name |
-| `--json`  | `-j`  | Output information in JSON format |
 | `--version` | `-v` | Print the version number |
 | `--help` | `-h` | Display help information |
 
 #### Command Flags
 
-| Flag      | Short | Description |
-|-----------|-------|-------------|
-| `--all`   | `-A`  | Show all information (e.g., more details in compute commands) |
-| `--limit` | `-m`  | Maximum number of records per page (default: 20) |
-| `--page`  | `-p`  | Page number to display (default: 1) |
-| `--sort`  | `-s`  | Sort results by field (e.g., name, cidr) |
-| `--filter` | `-f` | Filter regions by prefix (e.g., us, eu, ap) |
-| `--realm` | `-r` | Filter by realm (e.g., OC1, OC2) |
+| Flag            | Short | Description |
+|-----------------|-------|-------------|
+| `--json`        | `-j`  | Output information in JSON format |
+| `--all`         | `-A`  | Include all related info sections where applicable (e.g., for VCNs: gateways, subnets, NSGs, route tables, security lists) |
+| `--limit`       | `-m`  | Maximum number of records per page (default: 20) |
+| `--page`        | `-p`  | Page number to display (default: 1) |
+| `--scope`       |       | Listing/search scope for applicable commands: `compartment` (default) or `tenancy` |
+| `--tenancy-scope` | `-T`  | Shortcut to force tenancy-level scope; overrides `--scope` |
+| `--filter`      | `-f`  | Filter regions by prefix (e.g., us, eu, ap) |
+| `--realm`       | `-r`  | Filter by realm (e.g., OC1, OC2) |
+
+#### Network resource toggles (used by networking commands)
+
+| Flag                | Short | Description                                 |
+|---------------------|-------|---------------------------------------------|
+| `--gateway`         | `-G`  | Include/display internet/NAT gateways       |
+| `--subnet`          | `-S`  | Include/display subnets                     |
+| `--nsg`             | `-N`  | Include/display network security groups     |
+| `--route-table`     | `-R`  | Include/display route tables                |
+| `--security-list`   | `-L`  | Include/display security lists              |
+
+### Scope Control (Identity commands)
+
+Some identity subcommands support scoping their operations to either the configured parent compartment or the whole tenancy.
+
+- --scope: Choose where to operate: "compartment" (default) or "tenancy".
+- -T/--tenancy-scope: Shortcut to force tenancy-level scope; it overrides --scope.
+
+Examples:
+
+```bash
+# Compartments
+ocloud identity compartment get                 # children of configured compartment (default)
+ocloud identity compartment get --scope tenancy # whole tenancy (includes subtree)
+ocloud identity compartment get -T              # same as above
+
+# Policies
+ocloud identity policy list --scope compartment # explicit compartment-level listing
+ocloud identity policy search prod -T            # tenancy-level search
+```
+
+### Networking: VCN commands
+
+The network VCN group provides commands to get and find Virtual Cloud Networks in the configured compartment. You can include related networking resources using the network toggles shown above or the --all (-A) flag to include everything at once.
+
+Examples:
+
+- Get VCNs with pagination
+    - ocloud network vcn get
+    - ocloud network vcn get --limit 10 --page 2
+    - ocloud network vcn get -m 5 -p 3 --all
+    - ocloud network vcn get -m 5 -p 3 -A -j
+
+- Search VCNs by pattern
+    - ocloud network vcn search prod
+    - ocloud network vcn search prod --all
+    - ocloud network vcn search prod -A -j
+
+Interactive list (TUI):
+- ocloud network vcn list
+  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
+
+### Networking: Load Balancer commands
+
+Manage and explore Load Balancers in the configured compartment. You can:
+- Get paginated lists with optional extra columns using --all (-A)
+- Search using fuzzy, prefix, token, and substring matching across multiple fields
+- Launch an interactive list (TUI) to search and select a Load Balancer
+
+Examples:
+
+- Get Load Balancers with pagination
+    - ocloud network load-balancer get
+    - ocloud network load-balancer get --limit 10 --page 2
+    - ocloud network load-balancer get --all
+    - ocloud net lb get -A -j
+
+- Search Load Balancers by pattern
+    - ocloud network load-balancer search prod
+    - ocloud network load-balancer search prod --json
+    - ocloud network load-balancer search prod --all
+    - ocloud net lb s prod -A -j
+
+Interactive list (TUI):
+- ocloud network load-balancer list
+  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
+
+### Storage: Object Storage commands
+
+Manage and explore Object Storage Buckets in the configured compartment. You can:
+- Get paginated lists with optional extended details using --all (-A)
+- Launch an interactive list (TUI) to search and select a Bucket
+
+Examples:
+
+- Get Buckets with pagination
+    - ocloud storage object-storage get
+    - ocloud storage object-storage get --limit 10 --page 2
+    - ocloud storage object-storage get --all
+    - ocloud storage os get -A -j
+
+- Search Buckets by pattern
+    - ocloud storage object-storage search prod
+    - ocloud storage object-storage search prod --json
+    - ocloud storage os s prod -j
+
+Interactive list (TUI):
+- ocloud storage object-storage list
+  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
 
 ### Development Commands
 
@@ -361,6 +343,7 @@ Interactive list (TUI):
 | `make fmt-check` | Check if code is formatted correctly |
 | `make vet` | Run go vet |
 | `make lint` | Run golangci-lint |
+| `make vuln` | Run govulncheck vulnerability scan |
 | `make clean` | Clean build artifacts |
 | `make release` | Build binaries for all supported platforms and create zip archives |
 | `make compile` | Compile binaries for all supported platforms |
@@ -391,7 +374,6 @@ To run the test script:
 ## Tips
 
 - Interactive TUI lists (e.g., network vcn list, database autonomous list, compute image list) support quitting with q/Esc/Ctrl+C. If you exit without selecting an item, the command will exit gracefully without an error.
-- Use `--json` to get machine-readable output for scripting. Combine with `--limit` and `--page` for consistent pagination.
 
 ## Error Handling
 
@@ -406,14 +388,4 @@ Tip: You can also enable colored log messages with `--color`.
 
 ## License
 
-This project is licensed under the MIT License—see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+This project is licensed under the MIT License—see the [LICENSE](LICENSE) file for details
