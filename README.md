@@ -71,6 +71,13 @@ make install
 ```
 
 
+## Prerequisites
+
+Before using OCloud, ensure the following tools and setup are in place:
+- OCI CLI installed and configured. Follow Oracle's Quickstart guide: https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm#Quickstart
+- kubectl installed (for interacting with OKE clusters). Installation instructions for Linux: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+- SSH key pair available in your ~/.ssh directory. This is required for OCI Bastion managed sessions and for SSH port forwarding features.
+
 ## Configuration
 
 Running `ocloud` without any arguments displays the configuration details and available commands.
