@@ -3,10 +3,10 @@ package compartment
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/cnopslabs/ocloud/internal/logger"
+	"github.com/cnopslabs/ocloud/internal/services/search"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/go-logr/logr"
 )
@@ -38,73 +38,43 @@ func (s *Service) FetchPaginateCompartments(ctx context.Context, limit, pageNum 
 		return nil, 0, "", fmt.Errorf("listing compartments from repository: %w", err)
 	}
 
-	totalCount := len(allCompartments)
-	start := (pageNum - 1) * limit
-	end := start + limit
-
-	if start >= totalCount {
-		return []Compartment{}, totalCount, "", nil
-	}
-
-	if end > totalCount {
-		end = totalCount
-	}
-
-	pagedResults := allCompartments[start:end]
-
-	var nextPageToken string
-	if end < totalCount {
-		nextPageToken = fmt.Sprintf("%d", pageNum+1)
-	}
+	pagedResults, totalCount, nextPageToken := util.PaginateSlice(allCompartments, limit, pageNum)
 
 	s.logger.Info("completed compartment listing", "returnedCount", len(pagedResults), "totalCount", totalCount)
 	return pagedResults, totalCount, nextPageToken, nil
 }
 
-// Find performs a fuzzy search for compartments based on the provided searchPattern.
-func (s *Service) Find(ctx context.Context, searchPattern string) ([]Compartment, error) {
+// FuzzySearch performs a fuzzy search for compartments based on the provided searchPattern.
+func (s *Service) FuzzySearch(ctx context.Context, searchPattern string) ([]Compartment, error) {
 	s.logger.V(logger.Debug).Info("finding compartments with fuzzy search", "pattern", searchPattern)
 
-	// Step 1: Fetch all compartments from the repository.
 	allCompartments, err := s.compartmentRepo.ListCompartments(ctx, s.compartmentID)
 	if err != nil {
 		return nil, fmt.Errorf("fetching all compartments for search: %w", err)
 	}
 
-	// Step 2: Build the search index from the domain models.
-	index, err := util.BuildIndex(allCompartments, func(c Compartment) any {
-		return mapToIndexableCompartment(c)
-	})
+	// Build the search index using the common search package and the compartment searcher adapter.
+	indexables := ToSearchableCompartments(allCompartments)
+	idxMapping := search.NewIndexMapping(GetSearchableFields())
+	idx, err := search.BuildIndex(indexables, idxMapping)
 	if err != nil {
 		return nil, fmt.Errorf("building search index: %w", err)
 	}
+
 	logger.Logger.V(logger.Debug).Info("Search index built successfully.", "numEntries", len(allCompartments))
 
-	// Step 3: Perform the fuzzy search.
-	fields := []string{"Name", "Description"}
-	matchedIdxs, err := util.FuzzySearchIndex(index, strings.ToLower(searchPattern), fields)
+	matchedIdxs, err := search.FuzzySearch(idx, searchPattern, GetSearchableFields(), GetBoostedFields())
 	if err != nil {
 		return nil, fmt.Errorf("performing fuzzy search: %w", err)
 	}
 	logger.Logger.V(logger.Debug).Info("Fuzzy search completed.", "numMatches", len(matchedIdxs))
-	var results []Compartment
-	for _, idx := range matchedIdxs {
-		if idx >= 0 && idx < len(allCompartments) {
-			results = append(results, allCompartments[idx])
+
+	results := make([]Compartment, 0, len(matchedIdxs))
+	for _, i := range matchedIdxs {
+		if i >= 0 && i < len(allCompartments) {
+			results = append(results, allCompartments[i])
 		}
 	}
 
-	s.logger.Info("compartment search complete", "matches", len(results))
 	return results, nil
-}
-
-// mapToIndexableCompartment converts a domain.Compartment to a struct suitable for indexing.
-func mapToIndexableCompartment(compartment Compartment) any {
-	return struct {
-		Name        string
-		Description string
-	}{
-		Name:        strings.ToLower(compartment.DisplayName),
-		Description: strings.ToLower(compartment.Description),
-	}
 }

@@ -14,17 +14,26 @@ Whether you're managing instances, working with images, or need to quickly find 
 
 ## Features
 
-- Manage compute resources: Instances, Images, and OKE clusters
-- Manage identity resources: Compartments and Policies
-- Manage networking resources: VCNs, Subnets, and Load Balancers
+- Manage compute resources: Instances, Images, and OKE (Kubernetes) clusters and node pools
+- Manage networking resources: Virtual Cloud Networks (VCNs), Subnets, Load Balancers, and related components
+- Manage storage resources: Object Storage Buckets (list via TUI and paginated get)
+- Manage identity resources: Compartments, Policies, and Bastion sessions
 - Manage database resources: Autonomous Databases
-- Interactive configuration and OCI Auth Refresher to keep sessions alive
+- Powerful find/search commands using Bleve for fuzzy, prefix, and substring matching where applicable
+- Interactive configuration and an OCI Auth Refresher to keep sessions alive
 - Tenancy mapping for friendly tenancy and compartment names
 - Bastion session management: start/attach/terminate OCI Bastion sessions with reachability checks and an interactive SSH key picker (TUI)
-- Consistent JSON output (-j/--json) and list pagination/sorting flags across commands
+- Consistent JSON output, unified pagination across services, and short/long flag aliases
+- Built-in security in CI: govulncheck vulnerability scanning via `make vuln` and GitHub Actions
 
 
 ## Installation
+
+Before you begin
+
+Prerequisites:
+- OCI CLI (oci): https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm
+- kubectl (optional; required for OKE interactions): https://kubernetes.io/docs/tasks/tools/
 
 OCloud can be installed in several ways:
 
@@ -222,6 +231,85 @@ Examples:
 
 Tip: These flags are particularly relevant for identity commands (compartment, policy), and may appear in other commands that support multiple scopes.
 
+### Networking: VCN commands
+
+The network VCN group provides commands to get and find Virtual Cloud Networks in the configured compartment. You can include related networking resources using the network toggles shown below or the --all (-A) flag to include everything at once.
+
+Examples:
+
+- Get VCNs with pagination
+  - ocloud network vcn get
+  - ocloud network vcn get --limit 10 --page 2
+  - ocloud network vcn get -m 5 -p 3 --all
+  - ocloud network vcn get -m 5 -p 3 -A -j
+
+- Search VCNs by pattern
+  - ocloud network vcn search prod
+  - ocloud network vcn search prod --all
+  - ocloud network vcn search prod -A -j
+
+Interactive list (TUI):
+- ocloud network vcn list
+  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
+
+#### Network resource toggles (used by networking commands)
+
+| Flag                | Short | Description                                 |
+|---------------------|-------|---------------------------------------------|
+| `--gateway`         | `-G`  | Include/display internet/NAT gateways       |
+| `--subnet`          | `-S`  | Include/display subnets                     |
+| `--nsg`             | `-N`  | Include/display network security groups     |
+| `--route-table`     | `-R`  | Include/display route tables                |
+| `--security-list`   | `-L`  | Include/display security lists              |
+
+### Networking: Load Balancer commands
+
+Manage and explore Load Balancers in the configured compartment. You can:
+- Get paginated lists with optional extra columns using --all (-A)
+- Search using fuzzy, prefix, token, and substring matching across multiple fields
+- Launch an interactive list (TUI) to search and select a Load Balancer
+
+Examples:
+
+- Get Load Balancers with pagination
+  - ocloud network loadbalancer get
+  - ocloud network loadbalancer get --limit 10 --page 2
+  - ocloud network loadbalancer get --all
+  - ocloud net lb get -A -j
+
+- Search Load Balancers by pattern
+  - ocloud network loadbalancer search prod
+  - ocloud network loadbalancer search prod --json
+  - ocloud network loadbalancer search prod --all
+  - ocloud net lb s prod -A -j
+
+Interactive list (TUI):
+- ocloud network loadbalancer list
+  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
+
+### Storage: Object Storage commands
+
+Manage and explore Object Storage Buckets in the configured compartment. You can:
+- Get paginated lists with optional extended details using --all (-A)
+- Launch an interactive list (TUI) to search and select a Bucket
+
+Examples:
+
+- Get Buckets with pagination
+  - ocloud storage object-storage get
+  - ocloud storage object-storage get --limit 10 --page 2
+  - ocloud storage object-storage get --all
+  - ocloud storage os get -A -j
+
+- Search Buckets by pattern
+  - ocloud storage object-storage search prod
+  - ocloud storage object-storage search prod --json
+  - ocloud storage os s prod -j
+
+Interactive list (TUI):
+- ocloud storage object-storage list
+  Note: This command is interactive and not suitable for non-interactive scripts. If you quit without selecting an item, it exits without error.
+
 ### Environment Variables
 
 | Variable | Description |
@@ -288,7 +376,8 @@ The project includes a comprehensive test script `test_ocloud.sh` that tests all
 - Configuration commands (info, map-file, session)
 - Compute commands (instance, image, oke)
 - Identity commands (bastion, compartment, policy)
-- Network commands (subnet)
+- Network commands (subnet, vcn, loadbalancer)
+- Storage commands (object-storage)
 - Database commands (autonomousdb)
 
 The script tests various flags and abbreviations for each command, following a consistent pattern throughout.
@@ -298,6 +387,11 @@ To run the test script:
 ```bash
 ./test_ocloud.sh
 ```
+
+## Tips
+
+- Interactive TUI lists (e.g., network vcn list, database autonomous list, compute image list) support quitting with q/Esc/Ctrl+C. If you exit without selecting an item, the command will exit gracefully without an error.
+- Use `--json` to get machine-readable output for scripting. Combine with `--limit` and `--page` for consistent pagination.
 
 ## Error Handling
 

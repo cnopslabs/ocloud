@@ -3,10 +3,10 @@ package image
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/cnopslabs/ocloud/internal/logger"
+	"github.com/cnopslabs/ocloud/internal/services/search"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/go-logr/logr"
 )
@@ -36,31 +36,14 @@ func (s *Service) FetchPaginatedImages(ctx context.Context, limit, pageNum int) 
 		return nil, 0, "", fmt.Errorf("listing images from repository: %w", err)
 	}
 
-	totalCount := len(allImages)
-	start := (pageNum - 1) * limit
-	end := start + limit
-
-	if start >= totalCount {
-		return []Image{}, totalCount, "", nil
-	}
-
-	if end > totalCount {
-		end = totalCount
-	}
-
-	pagedResults := allImages[start:end]
-
-	var nextPageToken string
-	if end < totalCount {
-		nextPageToken = fmt.Sprintf("%d", pageNum+1)
-	}
+	pagedResults, totalCount, nextPageToken := util.PaginateSlice(allImages, limit, pageNum)
 
 	s.logger.Info("completed image listing", "returnedCount", len(pagedResults), "totalCount", totalCount)
 	return pagedResults, totalCount, nextPageToken, nil
 }
 
-// Find performs a fuzzy search for images.
-func (s *Service) Find(ctx context.Context, searchPattern string) ([]Image, error) {
+// FuzzySearch performs a fuzzy search for images.
+func (s *Service) FuzzySearch(ctx context.Context, searchPattern string) ([]Image, error) {
 	s.logger.V(logger.Debug).Info("finding images with fuzzy search", "pattern", searchPattern)
 
 	allImages, err := s.imageRepo.ListImages(ctx, s.compartmentID)
@@ -68,40 +51,26 @@ func (s *Service) Find(ctx context.Context, searchPattern string) ([]Image, erro
 		return nil, fmt.Errorf("fetching all images for search: %w", err)
 	}
 
-	index, err := util.BuildIndex(allImages, func(img Image) any {
-		return mapToIndexableImage(img)
-	})
+	searchableImages := ToSearchableImages(allImages)
+	indexMapping := search.NewIndexMapping(GetSearchableFields())
+	idx, err := search.BuildIndex(searchableImages, indexMapping)
 	if err != nil {
 		return nil, fmt.Errorf("building search index: %w", err)
 	}
+
 	s.logger.V(logger.Debug).Info("Search index built successfully.", "numEntries", len(allImages))
 
-	fields := []string{"Name", "OperatingSystem", "OperatingSystemVersion"}
-	matchedIdxs, err := util.FuzzySearchIndex(index, strings.ToLower(searchPattern), fields)
+	matchedIdxs, err := search.FuzzySearch(idx, searchPattern, GetSearchableFields(), GetBoostedFields())
 	if err != nil {
-		return nil, fmt.Errorf("performing fuzzy search: %w", err)
+		return nil, fmt.Errorf("search: %w", err)
 	}
-	s.logger.V(logger.Debug).Info("Fuzzy search completed.", "numMatches", len(matchedIdxs))
-	var results []Image
-	for _, idx := range matchedIdxs {
-		if idx >= 0 && idx < len(allImages) {
-			results = append(results, allImages[idx])
+
+	results := make([]Image, 0, len(matchedIdxs))
+	for _, i := range matchedIdxs {
+		if i >= 0 && i < len(allImages) {
+			results = append(results, allImages[i])
 		}
 	}
 
-	s.logger.Info("image search complete", "matches", len(results))
 	return results, nil
-}
-
-// mapToIndexableImage converts a domain.Image to a struct suitable for indexing.
-func mapToIndexableImage(img compute.Image) any {
-	return struct {
-		Name                   string
-		OperatingSystem        string
-		OperatingSystemVersion string
-	}{
-		Name:                   strings.ToLower(img.DisplayName),
-		OperatingSystem:        strings.ToLower(img.OperatingSystem),
-		OperatingSystemVersion: strings.ToLower(img.OperatingSystemVersion),
-	}
 }

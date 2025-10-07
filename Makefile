@@ -28,7 +28,7 @@ LDFLAGS := -X '$(PKG)/buildinfo.Version=$(VERSION)' \
 .DEFAULT_GOAL := help
 
 # Targets
-.PHONY: all build run install test fmt fmt-check vet lint clean help generate release compile zip check-env update-deps integration-test vulncheck
+.PHONY: all build run install test fmt fmt-check vet lint vuln clean help generate release compile zip check-env
 
 all: build
 
@@ -52,18 +52,6 @@ install:
 test:
 	@echo "Running tests..."
 	@go test -v -count=1 ./... -cover
-
-# Update dependencies
-update-deps:
-	@echo "Updating dependencies..."
-	@go get -u ./...
-	@go mod tidy
-
-# Run integration tests
-integration-test: build
-	@echo "Running integration tests..."
-	@chmod +x ./test_ocloud.sh
-	@./test_ocloud.sh
 
 # Format code
 fmt:
@@ -90,10 +78,10 @@ lint:
 	@echo "Linting code..."
 	@$(GOLANGCI_LINT) run --no-config ./...
 
-# Check for vulnerabilities
-vulncheck:
-	@echo "Checking for vulnerabilities..."
-	@go run golang.org/x/vuln/cmd/govulncheck ./...
+# Vulnerability scan
+vuln:
+	@echo "Running govulncheck..."
+	@govulncheck ./...
 
 # Clean build artifacts
 clean:
@@ -101,7 +89,7 @@ clean:
 	@rm -rf $(OUTPUT_DIR)
 
 # Release target for multiple platforms
-release: clean vet lint vulncheck compile zip
+release: clean vet lint compile zip
 
 # Compile binaries for multiple platforms
 compile:
@@ -123,6 +111,7 @@ check-env:
 	@echo "Checking environment..."
 	@command -v go >/dev/null 2>&1 || { echo >&2 "Go is not installed. Aborting."; exit 1; }
 	@command -v $(GOLANGCI_LINT) >/dev/null 2>&1 || { echo >&2 "golangci-lint is not installed. Run 'go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest' to install it."; exit 1; }
+	@command -v govulncheck >/dev/null 2>&1 || { echo >&2 "govulncheck is not installed. Run 'go install golang.org/x/vuln/cmd/govulncheck@latest' to install it."; exit 1; }
 	@command -v zip >/dev/null 2>&1 || { echo >&2 "Zip is not installed. Aborting."; exit 1; }
 
 # Help target
@@ -135,13 +124,11 @@ help:
 	@echo "  run            Builds and runs the CLI"
 	@echo "  install        Installs the binary to \$(GOBIN) or \$\$(go env GOPATH)/bin"
 	@echo "  test           Runs all tests"
-	@echo "  update-deps    Updates all dependencies and tidies go.mod"
-	@echo "  integration-test Runs the test_ocloud.sh integration test script"
 	@echo "  fmt            Formats Go source files"
 	@echo "  fmt-check      Checks if Go source files are formatted correctly"
 	@echo "  vet            Runs go vet on the code"
 	@echo "  lint           Runs golangci-lint on the code"
-	@echo "  vulncheck      Runs govulncheck to check for vulnerabilities"
+	@echo "  vuln           Runs govulncheck on the code"
 	@echo "  clean          Removes build artifacts"
 	@echo "  release        Builds binaries for all supported platforms and creates zip archives"
 	@echo "  compile        Compiles binaries for all supported platforms"
