@@ -411,7 +411,7 @@ Use our GitHub Issue Forms so we can triage faster:
 - Bug report: includes CLI command(s), environment, region/tenancy context, and debug logs.
 - Feature request: focuses on CLI UX and the impact across domain, mapping, services, cmd, and oci adapters.
 
-Open a new issue: https://github.com/cnopslabs/issues/new/choose
+Open a new issue: https://github.com/cnopslabs/ocloud/issues/new/choose
 
 Tips for good bug reports:
 - Run with --log-level debug and paste relevant logs (redact secrets).
