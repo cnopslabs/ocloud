@@ -23,7 +23,6 @@ Whether you're exploring instances, working with images, or need to quickly find
 - Bastion session management: start/attach/terminate OCI Bastion sessions with reachability checks and an interactive SSH key picker (TUI)
 - Consistent JSON output, unified pagination across services, and short/long flag aliases
 
-
 ## Installation
 
 OCloud can be installed in several ways:
@@ -108,12 +107,12 @@ Usage:
   ocloud [command]
 
 Available Commands:
-  compute     Manage OCI compute services
-  config      Manage ocloud CLI configurations file and authentication
-  database    Manage OCI Database services
+  compute     Explore OCI compute services
+  config      Configure ocloud CLI and authentication
+  database    Explore OCI Database services
   help        Help about any command
-  identity    Manage OCI identity services
-  network     Manage OCI networking services
+  identity    Explore OCI identity services
+  network     Explore OCI networking services
   version     Print the version information
 
 Flags:
