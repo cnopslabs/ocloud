@@ -6,7 +6,7 @@ If you’re new to the project, please skim README.md first to understand what o
 
 
 ## Getting help, asking questions
-- For questions and usage help, prefer Discussions: https://github.com/rozdolsky33/ocloud/discussions
+- For questions and usage help, prefer Discussions: https://github.com/cnopslabs/ocloud/discussions
 - For bugs and feature requests, use GitHub Issues with the provided templates.
 
 
