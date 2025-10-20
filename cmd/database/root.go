@@ -2,6 +2,8 @@ package database
 
 import (
 	"github.com/cnopslabs/ocloud/cmd/database/autonomousdb"
+	"github.com/cnopslabs/ocloud/cmd/database/cachecluster"
+	"github.com/cnopslabs/ocloud/cmd/database/heatwave"
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/spf13/cobra"
 )
@@ -19,6 +21,8 @@ func NewDatabaseCmd(appCtx *app.ApplicationContext) *cobra.Command {
 	}
 
 	cmd.AddCommand(autonomousdb.NewAutonomousDatabaseCmd(appCtx))
+	cmd.AddCommand(heatwave.NewHeatWaveDatabaseCmd(appCtx))
+	cmd.AddCommand(cachecluster.NewCacheClusterCmd(appCtx))
 
 	return cmd
 }
