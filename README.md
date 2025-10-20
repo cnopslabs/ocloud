@@ -22,6 +22,7 @@ Whether you're exploring instances, working with databases, or need to quickly f
 ### Database Services
 - **Autonomous Database**: List, search, and explore ADB instances
 - **HeatWave MySQL**: Explore HeatWave database instances with detailed configuration info
+- **OCI Cache Cluster**: Explore OCI Cache Clusters (Redis/Valkey) with detailed configuration info
 
 ### Networking
 - **VCNs**: Virtual Cloud Networks with gateways, subnets, NSGs, route tables, and security lists
@@ -315,6 +316,12 @@ ocloud database heatwave get --all
 ocloud database heatwave search "prod" --json
 ocloud database heatwave list  # Interactive TUI
 ocloud db hw s "8.4" -j
+
+# OCI Cache Cluster
+ocloud database cache-cluster get --all
+ocloud database cache-cluster search "prod" --json
+ocloud database cache-cluster list  # Interactive TUI
+ocloud db cc s "VALKEY_7_2" -j
 ```
 
 ### Network
@@ -389,7 +396,7 @@ The script tests:
 - Identity commands (compartment, policy)
 - Network commands (subnet, vcn, load-balancer)
 - Storage commands (object-storage)
-- Database commands (autonomous, heatwave)
+- Database commands (autonomous, heatwave, cache-cluster)
 
 ## Tips & Best Practices
 
