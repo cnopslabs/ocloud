@@ -51,7 +51,7 @@ Whether you're exploring instances, working with databases, or need to quickly f
 
 ```bash
 # Add the tap
-brew tap rozdolsky33/ocloud https://github.com/cnopslabs/ocloud
+brew tap cnopslabs/ocloud https://github.com/cnopslabs/ocloud
 
 # Install ocloud
 brew install ocloud
