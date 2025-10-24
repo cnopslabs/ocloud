@@ -99,8 +99,7 @@ func ConnectTarget(ctx context.Context, appCtx *app.ApplicationContext, svc *bas
 		return connectInstance(ctx, appCtx, svc, b, sType)
 	case TargetDatabase:
 		util.ShowConstructionAnimation()
-		//return connectDatabase(ctx, appCtx, svc, b, sType)
-		return nil
+		return connectDatabase(ctx, appCtx, svc, b, sType)
 	case TargetOKE:
 		return connectOKE(ctx, appCtx, svc, b, sType)
 	default:
