@@ -45,8 +45,8 @@ const (
 type DatabaseType string
 
 const (
-	DatabaseHeatWave   DatabaseType = "HeatWave"
-	DatabaseAutonomous DatabaseType = "AutonomousDatabase"
+	DatabaseHeatWave   DatabaseType = "MySQL HeatWave"
+	DatabaseAutonomous DatabaseType = "Autonomous Database"
 )
 
 //-----------------------------------Bastion/Session Creation Selection-------------------------------------------------
@@ -134,7 +134,7 @@ func (m BastionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter":
 			if m.Cursor >= 0 && m.Cursor < len(m.Bastions) {
-				m.Choice = m.Bastions[m.Cursor].ID
+				m.Choice = m.Bastions[m.Cursor].OCID
 			}
 			return m, tea.Quit
 		case "down", "j":
@@ -158,7 +158,7 @@ func (m BastionModel) View() string {
 		if m.Cursor == i {
 			mark = "(•) "
 		}
-		b.WriteString(mark + ba.Name + "\n")
+		b.WriteString(mark + ba.DisplayName + "\n")
 	}
 	b.WriteString("\n(press q to quit)\n")
 	return b.String()
@@ -410,13 +410,28 @@ func NewInstanceListModelFancy(instances []instSvc.Instance) ResourceListModel {
 		if name == "" {
 			name = inst.OCID
 		}
-		desc := fmt.Sprintf("IP: %s", inst.PrimaryIP)
-		if inst.VcnName != "" {
-			desc = inst.VcnName
-			if inst.SubnetName != "" {
-				desc += " · " + inst.SubnetName
-			}
+
+		// Build description with lifecycle state first, similar to compute an instance list
+		var parts []string
+
+		// Add lifecycle state
+		if inst.State != "" {
+			parts = append(parts, inst.State)
 		}
+
+		// Add VCN and subnet info
+		if inst.VcnName != "" {
+			vcnInfo := inst.VcnName
+			if inst.SubnetName != "" {
+				vcnInfo += " · " + inst.SubnetName
+			}
+			parts = append(parts, vcnInfo)
+		} else if inst.PrimaryIP != "" {
+			// Fallback to IP if VCN info not available
+			parts = append(parts, "IP: "+inst.PrimaryIP)
+		}
+
+		desc := strings.Join(parts, " • ")
 		items = append(items, resourceItem{id: inst.OCID, title: name, description: desc})
 	}
 	return newResourceList("Instances", items)
@@ -439,7 +454,7 @@ func NewOKEListModelFancy(clusters []okeSvc.Cluster) ResourceListModel {
 func NewDBListModelFancy(dbs []adbSvc.AutonomousDatabase) ResourceListModel {
 	items := make([]list.Item, 0, len(dbs))
 	for _, d := range dbs {
-		desc := d.PrivateEndpoint
+		desc := describeAutonomousDatabase(d)
 		items = append(items, resourceItem{id: d.ID, title: d.Name, description: desc})
 	}
 	return newResourceList("Autonomous Databases", items)
@@ -449,7 +464,7 @@ func NewDBListModelFancy(dbs []adbSvc.AutonomousDatabase) ResourceListModel {
 func NewHeatWaveDBListModelFancy(dbs []hwdbSvc.HeatWaveDatabase) ResourceListModel {
 	items := make([]list.Item, 0, len(dbs))
 	for _, d := range dbs {
-		desc := d.IpAddress
+		desc := describeHeatWaveDatabase(d)
 		items = append(items, resourceItem{id: d.ID, title: d.DisplayName, description: desc})
 	}
 	return newResourceList("HeatWave Databases", items)
@@ -605,4 +620,118 @@ func NewSSHKeysModelBrowser(title, startDir string, showPublic bool) SHHFilesMod
 	m.showPublic = showPublic
 	m.NewSSHFilesModelFancyList()
 	return m
+}
+
+//---------------------------------------Database Description Helpers-------------------------------------------------------
+
+// describeHeatWaveDatabase builds a rich description string for a HeatWave database showing lifecycle state and key attributes.
+func describeHeatWaveDatabase(db hwdbSvc.HeatWaveDatabase) string {
+	// MySQL version and shape
+	versionShape := strings.TrimSpace(strings.Join(
+		filterNonEmpty(db.MysqlVersion, db.ShapeName),
+		" ",
+	))
+
+	// High availability
+	ha := ""
+	if isTrue(db.IsHighlyAvailable) {
+		ha = "HA"
+	}
+
+	// Database mode
+	mode := ""
+	if db.DatabaseMode != "" {
+		mode = db.DatabaseMode
+	}
+
+	// Date created
+	date := ""
+	if db.TimeCreated != nil && !db.TimeCreated.IsZero() {
+		date = db.TimeCreated.Format("2006-01-02")
+	}
+
+	// Build description parts
+	parts := []string{}
+	if db.LifecycleState != "" {
+		parts = append(parts, db.LifecycleState)
+	}
+	if versionShape != "" {
+		parts = append(parts, versionShape)
+	}
+	if ha != "" {
+		parts = append(parts, ha)
+	}
+	if mode != "" {
+		parts = append(parts, mode)
+	}
+	if date != "" {
+		parts = append(parts, date)
+	}
+
+	return strings.Join(parts, " • ")
+}
+
+// describeAutonomousDatabase builds a rich description string for an Autonomous Database showing lifecycle state and key attributes.
+func describeAutonomousDatabase(adb adbSvc.AutonomousDatabase) string {
+	// Workload and version
+	wv := strings.TrimSpace(strings.Join(
+		filterNonEmpty(adb.DbWorkload, adb.DbVersion),
+		" ",
+	))
+
+	// Access type
+	access := ""
+	if adb.PrivateEndpointLabel != "" {
+		access = "Private " + adb.PrivateEndpointLabel
+	} else if adb.SubnetName != "" {
+		access = "Private " + adb.SubnetName
+	} else if adb.PrivateEndpoint != "" {
+		access = "Private"
+	}
+
+	// Data Guard role
+	dg := ""
+	if isTrue(adb.IsDataGuardEnabled) && adb.Role != "" {
+		dg = "DG " + strings.ToUpper(adb.Role)
+	}
+
+	// Date created
+	date := ""
+	if adb.TimeCreated != nil && !adb.TimeCreated.IsZero() {
+		date = adb.TimeCreated.Format("2006-01-02")
+	}
+
+	// Build description parts
+	parts := []string{}
+	if adb.LifecycleState != "" {
+		parts = append(parts, adb.LifecycleState)
+	}
+	if wv != "" {
+		parts = append(parts, wv)
+	}
+	if access != "" {
+		parts = append(parts, access)
+	}
+	if dg != "" {
+		parts = append(parts, dg)
+	}
+	if date != "" {
+		parts = append(parts, date)
+	}
+
+	return strings.Join(parts, " • ")
+}
+
+// isTrue is a helper to check if a bool pointer is non-nil and true.
+func isTrue(b *bool) bool { return b != nil && *b }
+
+// filterNonEmpty filters out empty strings from a variadic list of strings.
+func filterNonEmpty(vals ...string) []string {
+	out := make([]string, 0, len(vals))
+	for _, v := range vals {
+		if strings.TrimSpace(v) != "" {
+			out = append(out, v)
+		}
+	}
+	return out
 }
