@@ -10,8 +10,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/cnopslabs/ocloud/internal/app"
 	bastionSvc "github.com/cnopslabs/ocloud/internal/services/identity/bastion"
-	"github.com/cnopslabs/ocloud/internal/services/util"
-	"github.com/oracle/oci-go-sdk/v65/bastion"
 )
 
 // SelectBastionType runs a simple TUI to choose between Bastion mgmt or Session.
@@ -39,7 +37,7 @@ func SelectBastion(ctx context.Context, svc *bastionSvc.Service, t BastionType) 
 		return bastionSvc.Bastion{}, fmt.Errorf("list bastions: %w", err)
 	}
 	list = slices.DeleteFunc(list, func(b bastionSvc.Bastion) bool {
-		return b.LifecycleState != bastion.BastionLifecycleStateActive
+		return b.LifecycleState != "ACTIVE"
 	})
 
 	m := NewBastionModel(list)
@@ -53,7 +51,7 @@ func SelectBastion(ctx context.Context, svc *bastionSvc.Service, t BastionType) 
 		return bastionSvc.Bastion{}, ErrAborted
 	}
 	for _, b := range list {
-		if b.ID == out.Choice {
+		if b.OCID == out.Choice {
 			return b, nil
 		}
 	}
@@ -98,13 +96,11 @@ func ConnectTarget(ctx context.Context, appCtx *app.ApplicationContext, svc *bas
 	case TargetInstance:
 		return connectInstance(ctx, appCtx, svc, b, sType)
 	case TargetDatabase:
-		util.ShowConstructionAnimation()
-		//return connectDatabase(ctx, appCtx, svc, b, sType)
-		return nil
+		return connectDatabase(ctx, appCtx, svc, b, sType)
 	case TargetOKE:
 		return connectOKE(ctx, appCtx, svc, b, sType)
 	default:
-		fmt.Printf("Prepared %s session on %s (%s) -> %s\n", sType, b.Name, b.ID, tType)
+		fmt.Printf("Prepared %s session on %s (%s) -> %s\n", sType, b.DisplayName, b.OCID, tType)
 		return nil
 	}
 }
