@@ -19,7 +19,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ErrCancelled is returned when a user cancels an operation via Ctrl+C
+// ErrCancelled is returned when user cancels an operation via Ctrl+C
 var ErrCancelled = errors.New("operation cancelled by user")
 
 // NewService initializes a new Service instance with the provided application context.
