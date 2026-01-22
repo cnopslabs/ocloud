@@ -27,7 +27,7 @@ Whether you're exploring instances, working with databases, or need to quickly f
 ### Networking
 - **VCNs**: Virtual Cloud Networks with gateways, subnets, NSGs, route tables, and security lists
 - **Subnets**: Network subnet management
-- **Load Balancers**: Explore and search load balancer configurations
+- **Load Balancers**: Explore and search load balancer configurations with health summaries
 
 ### Identity & Access
 - **Compartments**: Navigate compartment hierarchy with tenancy-level scope support
@@ -38,6 +38,8 @@ Whether you're exploring instances, working with databases, or need to quickly f
   - Connect to Compute Instances (Managed SSH & Port Forwarding)
   - Connect to Databases (Autonomous DB & HeatWave via Port Forwarding)
   - Connect to OKE Clusters (Managed SSH to nodes & Port Forwarding to API server)
+  - Connect to Load Balancers (Port Forwarding with TUI selection and health summaries)
+  - Enhanced privileged port handling with sudo password validation
   - Automatic SSH tunnel management with background processes
   - Interactive SSH key pair selection
   - Automatic kubeconfig setup for OKE connections
@@ -122,6 +124,9 @@ ocloud network vcn list
 
 # Create bastion session with interactive TUI flow
 ocloud identity bastion create
+
+# List private Load Balancers and health status
+ocloud network load-balancer list
 ```
 
 ## Configuration
@@ -138,7 +143,7 @@ Example output (values will vary by version, time, and your environment):
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: v0.1.6
+	      Version: v0.1.9
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
@@ -305,7 +310,7 @@ The `ocloud identity bastion create` command launches an interactive flow that g
 
 1. **Session Type Selection**: Choose between Bastion management or creating a new session
 2. **Bastion Selection**: Pick from your active bastions via TUI
-3. **Target Type Selection**: Choose your connection target (Instance, Database, or OKE)
+3. **Target Type Selection**: Choose your connection target (Instance, Database, OKE, or Load Balancer)
 4. **Session Type**: Select Managed SSH or Port Forwarding
 5. **Resource Selection**: Interactive TUI to pick the specific resource
 6. **SSH Key Selection**: Choose your SSH key pair from `~/.ssh`
@@ -360,12 +365,22 @@ ocloud identity bastion create
 # kubectl commands work via the tunnel to localhost:<port>
 ```
 
+#### Load Balancer Connections
+
+**Port Forwarding**: Secure access to private Load Balancers with TUI-guided selection and health summaries
+```bash
+ocloud identity bastion create
+# Select: Session → Choose Bastion → Load Balancer → Pick LB → Enter Port (default local: 8443, target: 443)
+# Note: Supports privileged local ports (e.g., 443) with sudo password validation
+```
+
 ### SSH Tunnel Management
 
 - Tunnels run as **background processes** and persist after CLI exits
 - **Logs** written to `~/.oci/sessions/<profile>/logs/ssh-tunnel-<port>-<date>.log`
 - **State tracking** in `~/.oci/sessions/<profile>/tunnel/tunnel-<port>.json`
 - Automatic **port availability** checking
+- **Privileged port support**: Secure handling of ports < 1024 with sudo password validation
 - **Connection verification** with a 30-second timeout
 
 ### Listing Existing Bastions
