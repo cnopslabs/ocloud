@@ -14,7 +14,7 @@ func TestObjectStorageRootCommand(t *testing.T) {
 	assert.Equal(t, "object-storage", cmd.Use)
 	assert.Contains(t, cmd.Aliases, "objectstorage")
 	assert.Contains(t, cmd.Aliases, "os")
-	assert.Equal(t, "Manage OCI Object Storage: list, get, and search", cmd.Short)
+	assert.Equal(t, "Manage OCI Object Storage buckets and objects", cmd.Short)
 	assert.True(t, cmd.SilenceUsage)
 	assert.True(t, cmd.SilenceErrors)
 
