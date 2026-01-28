@@ -45,7 +45,11 @@ Whether you're exploring instances, working with databases, or need to quickly f
   - Automatic kubeconfig setup for OKE connections
 
 ### Storage
-- **Object Storage**: Browse and search buckets with interactive TUI
+- **Object Storage**: Comprehensive interactive TUI for bucket exploration and object management
+  - Browse and search buckets with tenancy-level scope support
+  - **TUI-driven Uploads**: Interactive file picker with automatic multipart upload for large files (>10MB)
+  - **TUI-driven Downloads**: Interactive bucket and object selection with local directory browser
+  - **Real-time Progress**: Visual progress bars for both upload and download operations
 
 ### Core Capabilities
 - **Powerful Search**: Fuzzy, prefix, and substring matching using Bleve indexing
@@ -122,6 +126,10 @@ ocloud database autonomous search "test" --json
 # Interactive VCN list (TUI)
 ocloud network vcn list
 
+# Interactive object upload and download
+ocloud storage object-storage upload
+ocloud storage object-storage download
+
 # Create bastion session with interactive TUI flow
 ocloud identity bastion create
 
@@ -143,7 +151,7 @@ Example output (values will vary by version, time, and your environment):
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: v0.1.9
+	      Version: v0.1.10
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
@@ -481,7 +489,9 @@ ocloud ident b create                        # Short alias
 # Object Storage
 ocloud storage object-storage get
 ocloud storage object-storage search "prod" --json
-ocloud storage object-storage list  # Interactive TUI
+ocloud storage object-storage list      # Interactive TUI list
+ocloud storage object-storage upload    # Interactive TUI-driven upload
+ocloud storage object-storage download  # Interactive TUI-driven download
 ocloud storage os s "prod" -j
 ```
 
@@ -544,6 +554,26 @@ ocloud identity bastion create
 
 # 3. Connect with MySQL client
 mysql -h 127.0.0.1 -P 3306 -u admin -p
+```
+
+### Interactive Object Storage Management
+
+Effortlessly manage your files in OCI Object Storage with TUI-guided flows:
+
+#### Uploading Files
+```bash
+ocloud storage object-storage upload
+# 1. Select destination bucket from list
+# 2. Browse local filesystem to pick a file
+# 3. Monitor upload progress (multipart used for files >10MiB)
+```
+
+#### Downloading Objects
+```bash
+ocloud storage object-storage download
+# 1. Select source bucket
+# 2. Pick object(s) from the bucket list
+# 3. Choose local destination and monitor download progress
 ```
 
 ## Development
