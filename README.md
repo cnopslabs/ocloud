@@ -27,16 +27,18 @@ Whether you're exploring instances, working with databases, or need to quickly f
 ### Networking
 - **VCNs**: Virtual Cloud Networks with gateways, subnets, NSGs, route tables, and security lists
 - **Subnets**: Network subnet management
-- **Load Balancers**: Explore and search load balancer configurations with health summaries
+- **Load Balancers**: Explore and search load balancer configurations (L7) with health summaries
+- **Network Load Balancers**: Explore and search Network Load Balancer (L4) configurations
 
 ### Identity & Access
 - **Compartments**: Navigate compartment hierarchy with tenancy-level scope support
 - **Policies**: Explore IAM policies across compartments
+- **Dynamic Groups**: Explore and search dynamic groups
 - **Bastion**: Comprehensive bastion and session management
   - List and explore existing bastions
   - Create interactive bastion sessions with TUI-guided flows
   - Connect to Compute Instances (Managed SSH & Port Forwarding)
-  - Connect to Databases (Autonomous DB & HeatWave via Port Forwarding)
+  - Connect to Databases (Autonomous DB, HeatWave, and OCI Cache via Port Forwarding)
   - Connect to OKE Clusters (Managed SSH to nodes & Port Forwarding to API server)
   - Connect to Load Balancers (Port Forwarding with TUI selection and health summaries)
   - Enhanced privileged port handling with sudo password validation
@@ -135,6 +137,12 @@ ocloud identity bastion create
 
 # List private Load Balancers and health status
 ocloud network load-balancer list
+
+# List Network Load Balancers (NLB)
+ocloud network network-load-balancer list
+
+# List Dynamic Groups
+ocloud identity dynamic-group list
 ```
 
 ## Configuration
@@ -151,7 +159,7 @@ Example output (values will vary by version, time, and your environment):
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: v0.1.10
+	      Version: v0.1.12
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
@@ -168,24 +176,26 @@ Usage:
   ocloud [command]
 
 Available Commands:
+  completion  Generate the autocompletion script for the specified shell
   compute     Explore OCI compute services
-  config      Configure ocloud CLI and authentication
+  config      Manage ocloud CLI configurations file and authentication
   database    Explore OCI Database services
   help        Help about any command
   identity    Explore OCI identity services
-  network     Explore OCI networking services
+  network     Explore OCI network services
+  storage     Explore OCI Storage services
   version     Print the version information
 
 Flags:
       --color                 Enable colored log messages.
-  -c, --compartment string    OCI compartment name
+  -c, --compartment string    OCI compartment name or OCID
   -d, --debug                 Enable debug logging
-  -h, --help                  help for ocloud (shorthand: -h)
+  -h, --help                  Show help
   -j, --json                  Output information in JSON format
-      --log-level string      Set the log verbosity debug, (default "info")
+      --log-level string      Set the log verbosity (e.g., info, debug) (default "info")
   -t, --tenancy-id string     OCI tenancy OCID
       --tenancy-name string   Tenancy name
-  -v, --version               Print the version number of ocloud CLI
+  -v, --version               Print the ocloud CLI version
 ```
 
 OCloud can be configured in multiple ways, with the following precedence (highest to lowest):
@@ -357,6 +367,13 @@ ocloud identity bastion create
 # Tunnel runs in background, connect to localhost:<port>
 ```
 
+**OCI Cache (Redis)**: Secure port forwarding to OCI Cache clusters
+```bash
+ocloud identity bastion create
+# Select: Session → Choose Bastion → Database → OCI Cache (Redis) → Pick Cache Cluster → Enter Port (default: 6379)
+# Tunnel runs in background, connect to localhost:<port>
+```
+
 #### OKE Cluster Connections
 
 **Managed SSH to Node**: Direct SSH access to OKE worker nodes
@@ -452,11 +469,18 @@ ocloud network vcn get --all
 ocloud network vcn list  # Interactive TUI
 ocloud network vcn search "prod" -A -j
 
-# Load Balancers
+# Load Balancers (L7)
 ocloud network load-balancer get
 ocloud network load-balancer list  # Interactive TUI
 ocloud network load-balancer search "prod" --all
 ocloud net lb s "prod" -A -j
+
+# Network Load Balancers (L4)
+ocloud network network-load-balancer get
+ocloud network network-load-balancer list  # Interactive TUI
+ocloud network network-load-balancer search "prod" --all
+ocloud net nlb s "prod" -A -j
+# Alternative aliases: networkloadbalancer, nlb
 
 # Subnets
 ocloud network subnet list  # Interactive TUI
@@ -476,6 +500,12 @@ ocloud identity compartment search "sandbox" --json
 ocloud identity policy get
 ocloud identity policy list                  # Interactive TUI
 ocloud identity policy search "monitor" -T
+
+# Dynamic Groups
+ocloud identity dynamic-group get
+ocloud identity dynamic-group list           # Interactive TUI
+ocloud identity dynamic-group search "prod" --json
+ocloud ident dg s "prod" -j
 
 # Bastion
 ocloud identity bastion get                  # List existing bastions
@@ -618,7 +648,7 @@ The script tests:
 - **Colored Output**: Use `--color` for better readability in terminals.
 - **Bastion Tunnels**: Background SSH tunnels persist after CLI exits. Check logs in `~/.oci/sessions/<profile>/logs/` if connection fails.
 - **OKE Access**: Port forwarding to the OKE API server automatically offers kubeconfig setup for seamless kubectl access.
-- **Database Connections**: Use bastion port forwarding for secure access to private Autonomous DB and HeatWave instances without exposing public endpoints.
+- **Database Connections**: Use bastion port forwarding for secure access to private Autonomous DB, HeatWave, and OCI Cache instances without exposing public endpoints.
 
 ## Error Handling
 
