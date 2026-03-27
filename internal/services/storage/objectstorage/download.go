@@ -15,7 +15,7 @@ import (
 
 // DownloadFile handles the interactive download flow:
 // 1. Show bucket list TUI to select the source bucket
-// 2. Show object list TUI to select an object to download
+// 2. Show object list TUI to select object to download
 // 3. Download the file with progress TUI
 func DownloadFile(appCtx *app.ApplicationContext) error {
 	ctx := context.Background()

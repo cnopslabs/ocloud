@@ -23,7 +23,9 @@ func ListBuckets(appCtx *app.ApplicationContext, useJSON bool) error {
 	}
 
 	bucketAdapter := osadapter.NewAdapter(client)
-	service := NewService(bucketAdapter, appCtx.Logger, appCtx.CompartmentID) // Get namespace once for all operations
+	service := NewService(bucketAdapter, appCtx.Logger, appCtx.CompartmentID)
+
+	// Get namespace once for all operations
 	namespace, err := service.GetNamespace(ctx)
 	if err != nil {
 		return fmt.Errorf("getting namespace: %w", err)
