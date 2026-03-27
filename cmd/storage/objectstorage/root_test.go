@@ -22,6 +22,8 @@ func TestObjectStorageRootCommand(t *testing.T) {
 	hasGet := false
 	hasList := false
 	hasSearch := false
+	hasUpload := false
+	hasDownload := false
 	for _, sc := range cmd.Commands() {
 		switch sc.Use {
 		case "get":
@@ -30,9 +32,15 @@ func TestObjectStorageRootCommand(t *testing.T) {
 			hasList = true
 		case "search <pattern>":
 			hasSearch = true
+		case "upload":
+			hasUpload = true
+		case "download":
+			hasDownload = true
 		}
 	}
 	assert.True(t, hasGet, "expected get subcommand")
 	assert.True(t, hasList, "expected list subcommand")
 	assert.True(t, hasSearch, "expected search subcommand")
+	assert.True(t, hasUpload, "expected upload subcommand")
+	assert.True(t, hasDownload, "expected download subcommand")
 }

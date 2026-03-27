@@ -9,7 +9,9 @@ import (
 	"github.com/oracle/oci-go-sdk/v65/bastion"
 	"github.com/oracle/oci-go-sdk/v65/certificatesmanagement"
 	"github.com/oracle/oci-go-sdk/v65/identity"
+	"github.com/oracle/oci-go-sdk/v65/identitydomains"
 	"github.com/oracle/oci-go-sdk/v65/loadbalancer"
+	"github.com/oracle/oci-go-sdk/v65/networkloadbalancer"
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 
 	"github.com/oracle/oci-go-sdk/v65/common"
@@ -108,6 +110,15 @@ func NewLoadBalancerClient(provider common.ConfigurationProvider) (loadbalancer.
 	return client, nil
 }
 
+// NewNetworkLoadBalancerClient creates and returns a new NetworkLoadBalancerClient using the provided configuration provider.
+func NewNetworkLoadBalancerClient(provider common.ConfigurationProvider) (networkloadbalancer.NetworkLoadBalancerClient, error) {
+	client, err := networkloadbalancer.NewNetworkLoadBalancerClientWithConfigurationProvider(provider)
+	if err != nil {
+		return client, fmt.Errorf("creating network load balancer client: %w", err)
+	}
+	return client, nil
+}
+
 // NewCertificatesManagementClient creates and returns a new CertificatesManagementClient.
 func NewCertificatesManagementClient(provider common.ConfigurationProvider) (certificatesmanagement.CertificatesManagementClient, error) {
 	client, err := certificatesmanagement.NewCertificatesManagementClientWithConfigurationProvider(provider)
@@ -123,5 +134,15 @@ func NewObjectStorageClient(provider common.ConfigurationProvider) (objectstorag
 	if err != nil {
 		return client, fmt.Errorf("creating object storage client: %w", err)
 	}
+	return client, nil
+}
+
+// NewIdentityDomainsClient creates and returns a new IdentityDomainsClient.
+func NewIdentityDomainsClient(provider common.ConfigurationProvider, domainURL string) (identitydomains.IdentityDomainsClient, error) {
+	client, err := identitydomains.NewIdentityDomainsClientWithConfigurationProvider(provider, domainURL)
+	if err != nil {
+		return client, fmt.Errorf("creating identity domains client: %w", err)
+	}
+	applySharedTransport(&client.BaseClient)
 	return client, nil
 }
