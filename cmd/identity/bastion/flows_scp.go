@@ -7,23 +7,20 @@ import (
 	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/rozdolsky33/ocloud/internal/app"
-	"github.com/rozdolsky33/ocloud/internal/logger"
-	"github.com/rozdolsky33/ocloud/internal/oci"
-	ociInst "github.com/rozdolsky33/ocloud/internal/oci/compute/instance"
-	instSvc "github.com/rozdolsky33/ocloud/internal/services/compute/instance"
-	bastionSvc "github.com/rozdolsky33/ocloud/internal/services/identity/bastion"
-	"github.com/rozdolsky33/ocloud/internal/services/util"
-	"github.com/rozdolsky33/ocloud/internal/tui"
+	"github.com/cnopslabs/ocloud/internal/app"
+	"github.com/cnopslabs/ocloud/internal/logger"
+	"github.com/cnopslabs/ocloud/internal/oci"
+	ociInst "github.com/cnopslabs/ocloud/internal/oci/compute/instance"
+	instSvc "github.com/cnopslabs/ocloud/internal/services/compute/instance"
+	bastionSvc "github.com/cnopslabs/ocloud/internal/services/identity/bastion"
+	"github.com/cnopslabs/ocloud/internal/services/util"
+	"github.com/cnopslabs/ocloud/internal/tui"
 )
 
-// connectSCP runs the SCP flow for an Instance target:
-// 1. Select instance
-// 2. Select SSH key pair
-// 3. Select local file to upload (file picker TUI)
-// 4. Prompt for remote destination path
-// 5. Create managed SSH session
-// 6. Execute SCP with progress
+// connectSCP runs the SCP flow for an Instance target: 1. Select instance 2.
+// Select SSH key pair 3. Select local file to upload (file picker TUI) 4. Prompt
+// for remote destination path 5. Create a managed SSH session 6. Execute SCP
+// with progress
 func connectSCP(ctx context.Context, appCtx *app.ApplicationContext, svc *bastionSvc.Service,
 	b bastionSvc.Bastion) error {
 
