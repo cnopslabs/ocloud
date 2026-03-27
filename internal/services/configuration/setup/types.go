@@ -1,8 +1,8 @@
 package setup
 
 import (
-	appConfig "github.com/cnopslabs/ocloud/internal/config"
 	"github.com/go-logr/logr"
+	appConfig "github.com/cnopslabs/ocloud/internal/config"
 )
 
 // Service provides operations and functionalities related to tenancy mapping information.

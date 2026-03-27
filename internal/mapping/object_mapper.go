@@ -3,8 +3,8 @@ package mapping
 import (
 	"time"
 
-	domain "github.com/cnopslabs/ocloud/internal/domain/storage/objectstorage"
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
+	domain "github.com/cnopslabs/ocloud/internal/domain/storage/objectstorage"
 )
 
 // ObjectAttributes is a generic, intermediate representation of an object's data.

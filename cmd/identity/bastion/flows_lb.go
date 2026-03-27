@@ -173,7 +173,9 @@ func connectLoadBalancer(ctx context.Context, appCtx *app.ApplicationContext, sv
 		"lb_name", lb.Name)
 
 	var pid int
-	var logFile string
+	var (
+		logFile string
+	)
 
 	if localPort < 1024 {
 		// Run with sudo in the background

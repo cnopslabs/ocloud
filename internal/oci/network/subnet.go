@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cnopslabs/ocloud/internal/domain/network/subnet"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/core"
+	"github.com/cnopslabs/ocloud/internal/domain/network/subnet"
 )
 
 // Client is a minimal legacy wrapper retained for backward compatibility with older code paths.

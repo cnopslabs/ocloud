@@ -13,8 +13,9 @@ import (
 	"github.com/cnopslabs/ocloud/internal/tui"
 )
 
-// UploadFile handles the interactive upload flow: 1. Show bucket list TUI to
-// select the destination bucket 2. Show file picker TUI to select a file to upload
+// UploadFile handles the interactive upload flow:
+// 1. Show bucket list TUI to select destination bucket
+// 2. Show file picker TUI to select file to upload
 // 3. Upload the file with progress TUI
 func UploadFile(appCtx *app.ApplicationContext) error {
 	ctx := context.Background()
@@ -32,7 +33,7 @@ func UploadFile(appCtx *app.ApplicationContext) error {
 		return fmt.Errorf("getting namespace: %w", err)
 	}
 
-	// Step 1: Show bucket list TUI to select the destination bucket
+	// Step 1: Show bucket list TUI to select destination bucket
 	buckets, err := service.ListBuckets(ctx)
 	if err != nil {
 		return fmt.Errorf("listing buckets: %w", err)
@@ -58,7 +59,7 @@ func UploadFile(appCtx *app.ApplicationContext) error {
 		return fmt.Errorf("getting bucket name: %w", err)
 	}
 
-	// Step 2: Show file picker TUI to select a file
+	// Step 2: Show file picker TUI to select file
 	fileModel, err := tui.NewFilePickerModel(".")
 	if err != nil {
 		return fmt.Errorf("creating file picker: %w", err)
@@ -119,7 +120,7 @@ func UploadFile(appCtx *app.ApplicationContext) error {
 		return err
 	}
 
-	// Wait for upload to finish and check a result
+	// Wait for upload to finish and check result
 	uploadErr := <-done
 	if uploadErr != nil {
 		return fmt.Errorf("uploading object: %w", uploadErr)

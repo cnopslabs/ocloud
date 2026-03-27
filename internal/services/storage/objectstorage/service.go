@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	storage "github.com/cnopslabs/ocloud/internal/domain/storage/objectstorage"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/search"
 	"github.com/cnopslabs/ocloud/internal/services/util"
-	"github.com/go-logr/logr"
 )
 
 type Service struct {

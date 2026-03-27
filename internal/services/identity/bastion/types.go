@@ -1,10 +1,10 @@
 package bastion
 
 import (
-	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/go-logr/logr"
 	"github.com/oracle/oci-go-sdk/v65/bastion"
 	"github.com/oracle/oci-go-sdk/v65/core"
+	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 )
 
 // Bastion is an alias to the domain.Bastion type.

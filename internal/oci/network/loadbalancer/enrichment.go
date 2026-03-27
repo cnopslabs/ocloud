@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/oracle/oci-go-sdk/v65/core"
 	domain "github.com/cnopslabs/ocloud/internal/domain/network/loadbalancer"
 	lbLogger "github.com/cnopslabs/ocloud/internal/logger"
-	"github.com/oracle/oci-go-sdk/v65/core"
 )
 
 // cachedFetch centralizes cache lookup, rate-limited fetch via Adapter.do, and cache population.

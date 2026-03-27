@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/cnopslabs/ocloud/internal/app"
 	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/oci"
 	ocibastion "github.com/cnopslabs/ocloud/internal/oci/identity/bastion"
-	"github.com/go-logr/logr"
 )
 
 // NewService creates a new bastion service with a repository pattern.

@@ -1,8 +1,8 @@
 package mapping
 
 import (
-	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/oracle/oci-go-sdk/v65/identity"
+	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 )
 
 type CompartmentAttributes struct {

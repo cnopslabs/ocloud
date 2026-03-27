@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	domain "github.com/cnopslabs/ocloud/internal/domain/network/loadbalancer"
-	lbLogger "github.com/cnopslabs/ocloud/internal/logger"
-	"github.com/cnopslabs/ocloud/internal/mapping"
 	"github.com/oracle/oci-go-sdk/v65/certificatesmanagement"
 	"github.com/oracle/oci-go-sdk/v65/core"
 	"github.com/oracle/oci-go-sdk/v65/loadbalancer"
+	domain "github.com/cnopslabs/ocloud/internal/domain/network/loadbalancer"
+	lbLogger "github.com/cnopslabs/ocloud/internal/logger"
+	"github.com/cnopslabs/ocloud/internal/mapping"
 	"golang.org/x/sync/singleflight"
 	"golang.org/x/time/rate"
 )

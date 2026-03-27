@@ -3,9 +3,9 @@ package mapping
 import (
 	"time"
 
-	domain "github.com/cnopslabs/ocloud/internal/domain/database"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/redis"
+	domain "github.com/cnopslabs/ocloud/internal/domain/database"
 )
 
 // CacheClusterAttributes holds intermediate attributes for mapping from OCI SDK to a domain model.

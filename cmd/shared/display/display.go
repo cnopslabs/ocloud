@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/cnopslabs/ocloud/buildinfo"
 	"github.com/cnopslabs/ocloud/internal/config"
-	"github.com/fatih/color"
 
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	bastionSvc "github.com/cnopslabs/ocloud/internal/services/identity/bastion"

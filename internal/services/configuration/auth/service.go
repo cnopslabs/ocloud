@@ -19,9 +19,9 @@ import (
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/cnopslabs/ocloud/scripts"
 
+	"github.com/pkg/errors"
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/config"
-	"github.com/pkg/errors"
 )
 
 // NewService creates a new authentication service.

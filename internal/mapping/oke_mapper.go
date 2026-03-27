@@ -3,8 +3,8 @@ package mapping
 import (
 	"time"
 
-	domain "github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/oracle/oci-go-sdk/v65/containerengine"
+	domain "github.com/cnopslabs/ocloud/internal/domain/compute"
 )
 
 type ClusterAttributes struct {

@@ -3,9 +3,9 @@ package mapping_test
 import (
 	"testing"
 
+	"github.com/oracle/oci-go-sdk/v65/bastion"
 	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/cnopslabs/ocloud/internal/mapping"
-	"github.com/oracle/oci-go-sdk/v65/bastion"
 	"github.com/stretchr/testify/require"
 )
 

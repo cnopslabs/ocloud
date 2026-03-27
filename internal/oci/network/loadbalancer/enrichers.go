@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	domain "github.com/cnopslabs/ocloud/internal/domain/network/loadbalancer"
-	lbLogger "github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/oracle/oci-go-sdk/v65/certificatesmanagement"
 	"github.com/oracle/oci-go-sdk/v65/loadbalancer"
+	domain "github.com/cnopslabs/ocloud/internal/domain/network/loadbalancer"
+	lbLogger "github.com/cnopslabs/ocloud/internal/logger"
 )
 
 // enrichBackendHealth fetches overall status per backend set and fills dm.BackendHealth.
