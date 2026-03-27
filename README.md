@@ -37,7 +37,7 @@ Whether you're exploring instances, working with databases, or need to quickly f
 - **Bastion**: Comprehensive bastion and session management
   - List and explore existing bastions
   - Create interactive bastion sessions with TUI-guided flows
-  - Connect to Compute Instances (Managed SSH & Port Forwarding)
+  - Connect to Compute Instances (Managed SSH, SCP, & Port Forwarding)
   - Connect to Databases (Autonomous DB, HeatWave, and OCI Cache via Port Forwarding)
   - Connect to OKE Clusters (Managed SSH to nodes & Port Forwarding to API server)
   - Connect to Load Balancers (Port Forwarding with TUI selection and health summaries)
@@ -344,6 +344,12 @@ ocloud identity bastion create
 # Select: Session → Choose Bastion → Instance → Managed SSH → Pick Instance → Select Keys
 ```
 
+**SCP (Secure Copy)**: Interactively upload files to compute instances
+```bash
+ocloud identity bastion create
+# Select: Session → Choose Bastion → SCP → Pick Instance → Select Keys → Pick Local File → Enter Remote Path
+```
+
 **Port Forwarding**: Create an SSH tunnel to instance ports (e.g., VNC, RDP, custom apps)
 ```bash
 ocloud identity bastion create
@@ -392,10 +398,10 @@ ocloud identity bastion create
 
 #### Load Balancer Connections
 
-**Port Forwarding**: Secure access to private Load Balancers with TUI-guided selection and health summaries
+**Port Forwarding (L7 & L4)**: Secure access to private Load Balancers (L7) and Network Load Balancers (L4) with TUI-guided selection and health summaries
 ```bash
 ocloud identity bastion create
-# Select: Session → Choose Bastion → Load Balancer → Pick LB → Enter Port (default local: 8443, target: 443)
+# Select: Session → Choose Bastion → Load Balancer (or Network Load Balancer) → Pick LB → Enter Port
 # Note: Supports privileged local ports (e.g., 443) with sudo password validation
 ```
 
@@ -567,6 +573,16 @@ Interactive SSH session to a private compute instance:
 ocloud identity bastion create
 # Select: Session → Choose Bastion → Instance → Managed SSH → Pick Instance
 # Provides direct interactive SSH shell
+```
+
+### Secure File Transfer (SCP) via Bastion
+
+Interactively upload files to a private compute instance:
+
+```bash
+ocloud identity bastion create
+# Select: Session → Choose Bastion → SCP → Pick Instance → Pick Local File
+# Guided flow for SSH keys, file selection, and remote destination
 ```
 
 ### Search and Connect Workflow
