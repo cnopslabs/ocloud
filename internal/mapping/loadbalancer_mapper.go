@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oracle/oci-go-sdk/v65/loadbalancer"
 	domain "github.com/cnopslabs/ocloud/internal/domain/network/loadbalancer"
+	"github.com/oracle/oci-go-sdk/v65/loadbalancer"
 )
 
 type LoadBalancerAttributes struct {

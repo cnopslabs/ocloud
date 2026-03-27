@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oracle/oci-go-sdk/v65/bastion"
-	"github.com/oracle/oci-go-sdk/v65/core"
 	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/cnopslabs/ocloud/internal/mapping"
+	"github.com/oracle/oci-go-sdk/v65/bastion"
+	"github.com/oracle/oci-go-sdk/v65/core"
 )
 
 // Adapter is an infrastructure-layer adapter that implements the domain.BastionRepository interface.

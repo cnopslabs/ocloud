@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oracle/oci-go-sdk/v65/common"
-	"github.com/oracle/oci-go-sdk/v65/identity"
-	"github.com/oracle/oci-go-sdk/v65/identitydomains"
 	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/cnopslabs/ocloud/internal/mapping"
 	"github.com/cnopslabs/ocloud/internal/oci"
+	"github.com/oracle/oci-go-sdk/v65/common"
+	"github.com/oracle/oci-go-sdk/v65/identity"
+	"github.com/oracle/oci-go-sdk/v65/identitydomains"
 )
 
 // Adapter is an infrastructure-layer adapter that implements the domain.DynamicGroupRepository interface.

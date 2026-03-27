@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oracle/oci-go-sdk/v65/core"
 	domain "github.com/cnopslabs/ocloud/internal/domain/network/networklb"
 	nlbLogger "github.com/cnopslabs/ocloud/internal/logger"
+	"github.com/oracle/oci-go-sdk/v65/core"
 )
 
 func cachedFetch[T any](ctx context.Context, a *Adapter, id string, mu *sync.RWMutex, cache map[string]T, fetch func(context.Context, string) (T, error)) (T, bool) {

@@ -14,9 +14,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/oracle/oci-go-sdk/v65/bastion"
 	"github.com/oracle/oci-go-sdk/v65/common"
-	"github.com/cnopslabs/ocloud/internal/config/flags"
 )
 
 // Defaults used for session wait and ttl

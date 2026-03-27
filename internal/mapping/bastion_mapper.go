@@ -3,8 +3,8 @@ package mapping
 import (
 	"reflect"
 
-	"github.com/oracle/oci-go-sdk/v65/bastion"
 	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
+	"github.com/oracle/oci-go-sdk/v65/bastion"
 )
 
 // BastionAttributes represents the attributes extracted from OCI SDK Bastion types.

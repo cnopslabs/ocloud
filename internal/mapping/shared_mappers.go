@@ -3,8 +3,8 @@ package mapping
 import (
 	"time"
 
-	"github.com/oracle/oci-go-sdk/v65/core"
 	domain_vcn "github.com/cnopslabs/ocloud/internal/domain/network/vcn"
+	"github.com/oracle/oci-go-sdk/v65/core"
 )
 
 // ImageAttributes is a provider-agnostic representation of an image.

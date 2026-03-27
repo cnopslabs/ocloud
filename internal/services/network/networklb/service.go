@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-logr/logr"
 	"github.com/cnopslabs/ocloud/internal/app"
 	domain "github.com/cnopslabs/ocloud/internal/domain/network/networklb"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/search"
+	"github.com/go-logr/logr"
 )
 
 // Service provides operations for managing network load balancers.

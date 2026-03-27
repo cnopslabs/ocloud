@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oracle/oci-go-sdk/v65/mysql"
 	"github.com/cnopslabs/ocloud/internal/domain/database"
+	"github.com/oracle/oci-go-sdk/v65/mysql"
 	"github.com/stretchr/testify/assert"
 )
 

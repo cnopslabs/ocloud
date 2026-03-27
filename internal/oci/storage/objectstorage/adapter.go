@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 	domain "github.com/cnopslabs/ocloud/internal/domain/storage/objectstorage"
 	"github.com/cnopslabs/ocloud/internal/mapping"
+	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
 type Adapter struct {

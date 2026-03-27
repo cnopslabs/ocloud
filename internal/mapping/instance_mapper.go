@@ -3,9 +3,9 @@ package mapping
 import (
 	"time"
 
+	domain "github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/core"
-	domain "github.com/cnopslabs/ocloud/internal/domain/compute"
 )
 
 type InstanceAttributes struct {

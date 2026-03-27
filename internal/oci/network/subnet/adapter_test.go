@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/oracle/oci-go-sdk/v65/core"
 	domain "github.com/cnopslabs/ocloud/internal/domain/network/subnet"
+	"github.com/oracle/oci-go-sdk/v65/core"
 )
 
 func sptr(s string) *string { return &s }

@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oracle/oci-go-sdk/v65/common"
-	"github.com/oracle/oci-go-sdk/v65/containerengine"
 	domain "github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/cnopslabs/ocloud/internal/mapping"
+	"github.com/oracle/oci-go-sdk/v65/common"
+	"github.com/oracle/oci-go-sdk/v65/containerengine"
 	"github.com/stretchr/testify/require"
 )
 

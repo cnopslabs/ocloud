@@ -3,9 +3,9 @@ package mapping
 import (
 	"time"
 
+	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/oracle/oci-go-sdk/v65/identity"
 	"github.com/oracle/oci-go-sdk/v65/identitydomains"
-	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
 )
 
 type DynamicGroupAttributes struct {

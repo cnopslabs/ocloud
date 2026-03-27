@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/printer"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
 // DisplayRegionsTable displays the available OCI regions in a table format.

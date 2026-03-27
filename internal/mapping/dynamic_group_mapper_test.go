@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
+	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
+	"github.com/cnopslabs/ocloud/internal/mapping"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/identity"
 	"github.com/oracle/oci-go-sdk/v65/identitydomains"
-	domain "github.com/cnopslabs/ocloud/internal/domain/identity"
-	"github.com/cnopslabs/ocloud/internal/mapping"
 	"github.com/stretchr/testify/require"
 )
 

@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oracle/oci-go-sdk/v65/core"
-	"github.com/oracle/oci-go-sdk/v65/networkloadbalancer"
 	domain "github.com/cnopslabs/ocloud/internal/domain/network/networklb"
 	nlbLogger "github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/mapping"
+	"github.com/oracle/oci-go-sdk/v65/core"
+	"github.com/oracle/oci-go-sdk/v65/networkloadbalancer"
 	"golang.org/x/time/rate"
 )
 

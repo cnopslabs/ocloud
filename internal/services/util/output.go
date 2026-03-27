@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/cnopslabs/ocloud/internal/app"
 	"github.com/cnopslabs/ocloud/internal/printer"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
 // MarshalDataToJSONResponse now accepts a printer and returns an error.

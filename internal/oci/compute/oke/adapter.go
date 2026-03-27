@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oracle/oci-go-sdk/v65/containerengine"
 	domain "github.com/cnopslabs/ocloud/internal/domain/compute"
 	"github.com/cnopslabs/ocloud/internal/mapping"
+	"github.com/oracle/oci-go-sdk/v65/containerengine"
 )
 
 // Adapter is an infrastructure-layer adapter for OKE clusters.

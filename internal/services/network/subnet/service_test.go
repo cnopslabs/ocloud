@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/go-logr/logr"
 	"github.com/cnopslabs/ocloud/internal/domain"
 	domainsubnet "github.com/cnopslabs/ocloud/internal/domain/network/subnet"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 )
 

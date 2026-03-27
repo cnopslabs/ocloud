@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"github.com/cnopslabs/ocloud/internal/domain/network/subnet"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/util"
+	"github.com/go-logr/logr"
 )
 
 // Service is the application-layer service for subnet operations.

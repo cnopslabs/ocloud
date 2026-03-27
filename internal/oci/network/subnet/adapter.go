@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oracle/oci-go-sdk/v65/core"
 	domainsubnet "github.com/cnopslabs/ocloud/internal/domain/network/subnet"
+	"github.com/oracle/oci-go-sdk/v65/core"
 )
 
 // Adapter is an infrastructure-layer adapter for network subnets.

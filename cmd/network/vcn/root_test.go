@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/go-logr/logr/testr"
 	"github.com/cnopslabs/ocloud/internal/app"
+	"github.com/go-logr/logr/testr"
 	"github.com/stretchr/testify/assert"
 )
 

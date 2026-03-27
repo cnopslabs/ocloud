@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-logr/logr"
 	"github.com/cnopslabs/ocloud/internal/domain/identity"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/search"
 	"github.com/cnopslabs/ocloud/internal/services/util"
+	"github.com/go-logr/logr"
 )
 
 // Service is the application-layer service for dynamic group operations.

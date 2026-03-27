@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/oracle/oci-go-sdk/v65/core"
 	"github.com/cnopslabs/ocloud/internal/domain/network/vcn"
+	"github.com/oracle/oci-go-sdk/v65/core"
 	"golang.org/x/sync/errgroup"
 )
 
