@@ -161,7 +161,7 @@ Example output (values will vary by version, time, and your environment):
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: v0.1.12
+	      Version: v0.1.16
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
