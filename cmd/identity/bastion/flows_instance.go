@@ -92,10 +92,29 @@ func connectInstance(ctx context.Context, appCtx *app.ApplicationContext, svc *b
 		return bastionSvc.RunShell(ctx, appCtx.Stdout, appCtx.Stderr, sshCmd)
 	case TypePortForwarding:
 		defaultPort := 5901
-		port, err := util.PromptPort("Enter port to forward (local:target)", defaultPort)
+		port, err := promptPortWithPrivilegedWarning("Enter port to forward (local:target)", defaultPort)
 		if err != nil {
 			return fmt.Errorf("read port: %w", err)
 		}
+
+		if util.IsLocalTCPPortInUse(port) {
+			return fmt.Errorf("local port %d is already in use on 127.0.0.1; choose another port", port)
+		}
+
+		var sudoPassword string
+		if port < 1024 {
+			logger.Logger.Info("Validating sudo access for privileged port...")
+			var err error
+			sudoPassword, err = util.PromptPassword("Password")
+			if err != nil {
+				return fmt.Errorf("read password: %w", err)
+			}
+			if err := bastionSvc.ValidateSudoPassword(sudoPassword); err != nil {
+				return fmt.Errorf("sudo validation failed: %w", err)
+			}
+			logger.Logger.Info("Sudo access validated successfully")
+		}
+
 		sessID, err := svc.EnsurePortForwardSession(ctx, b.OCID, inst.PrimaryIP, port, pubKey)
 		if err != nil {
 			return fmt.Errorf("ensure port forward: %w", err)
@@ -105,8 +124,15 @@ func connectInstance(ctx context.Context, appCtx *app.ApplicationContext, svc *b
 			return fmt.Errorf("build args: %w", err)
 		}
 
-		pid, logFile, err := bastionSvc.SpawnDetached(sshTunnelArgs, port, inst.PrimaryIP)
-
+		var (
+			pid     int
+			logFile string
+		)
+		if port < 1024 {
+			pid, logFile, err = bastionSvc.SpawnDetachedWithSudo(sshTunnelArgs, port, inst.PrimaryIP, sudoPassword)
+		} else {
+			pid, logFile, err = bastionSvc.SpawnDetached(sshTunnelArgs, port, inst.PrimaryIP)
+		}
 		if err != nil {
 			return fmt.Errorf("spawn detached: %w", err)
 		}
@@ -134,7 +160,95 @@ func connectInstance(ctx context.Context, appCtx *app.ApplicationContext, svc *b
 
 		logger.Logger.Info("SSH tunnel running in background", "logs", logFile)
 		return nil
+	case TypeRDP:
+		return connectInstanceRDP(ctx, svc, b, inst, region, pubKey, privKey)
 	default:
 		return fmt.Errorf("unsupported session type: %s", sType)
 	}
+}
+
+// connectInstanceRDP runs the RDP-over-bastion flow against a Windows instance.
+// Internally this is a PORT_FORWARDING session pinned to remote port 3389 (RDP).
+// The local port defaults to 3389 but is user-selectable; binding a privileged
+// local port (<1024) triggers the same sudo flow used elsewhere.
+func connectInstanceRDP(ctx context.Context, svc *bastionSvc.Service,
+	b bastionSvc.Bastion, inst instSvc.Instance, region, pubKey, privKey string) error {
+
+	const remoteRDPPort = 3389
+
+	defaultLocalPort := remoteRDPPort
+	localPort, err := promptPortWithPrivilegedWarning("Enter local port for RDP tunnel", defaultLocalPort)
+	if err != nil {
+		return fmt.Errorf("read port: %w", err)
+	}
+
+	if util.IsLocalTCPPortInUse(localPort) {
+		return fmt.Errorf("local port %d is already in use on 127.0.0.1; choose another port", localPort)
+	}
+
+	var sudoPassword string
+	if localPort < 1024 {
+		logger.Logger.Info("Validating sudo access for privileged port...")
+		var err error
+		sudoPassword, err = util.PromptPassword("Password")
+		if err != nil {
+			return fmt.Errorf("read password: %w", err)
+		}
+		if err := bastionSvc.ValidateSudoPassword(sudoPassword); err != nil {
+			return fmt.Errorf("sudo validation failed: %w", err)
+		}
+		logger.Logger.Info("Sudo access validated successfully")
+	}
+
+	sessID, err := svc.EnsurePortForwardSession(ctx, b.OCID, inst.PrimaryIP, remoteRDPPort, pubKey)
+	if err != nil {
+		return fmt.Errorf("ensure port forward: %w", err)
+	}
+	sshTunnelArgs, err := bastionSvc.BuildPortForwardArgs(privKey, sessID, region, inst.PrimaryIP, localPort, remoteRDPPort)
+	if err != nil {
+		return fmt.Errorf("build args: %w", err)
+	}
+
+	var (
+		pid     int
+		logFile string
+	)
+	if localPort < 1024 {
+		pid, logFile, err = bastionSvc.SpawnDetachedWithSudo(sshTunnelArgs, localPort, inst.PrimaryIP, sudoPassword)
+	} else {
+		pid, logFile, err = bastionSvc.SpawnDetached(sshTunnelArgs, localPort, inst.PrimaryIP)
+	}
+	if err != nil {
+		return fmt.Errorf("spawn detached: %w", err)
+	}
+	logger.Logger.V(logger.Debug).Info("spawned RDP tunnel", "pid", pid)
+
+	tunnelInfo := bastionSvc.TunnelInfo{
+		PID:       pid,
+		LocalPort: localPort,
+		TargetIP:  inst.PrimaryIP,
+		StartedAt: time.Now(),
+		LogFile:   logFile,
+	}
+	if err := bastionSvc.SaveTunnelState(tunnelInfo); err != nil {
+		logger.Logger.Error(err, "failed to save tunnel state")
+	}
+
+	logger.Logger.Info("RDP tunnel process started, waiting for connection to be ready...")
+	if err := bastionSvc.WaitForListen(localPort, 30*time.Second); err != nil {
+		logger.Logger.Info("Tunnel verification timed out, but the tunnel may still be establishing in the background", "port", localPort)
+		logger.Logger.Info("Check the tunnel status and logs if you experience connection issues")
+	} else {
+		logger.Logger.Info("Tunnel is ready and accepting connections")
+	}
+
+	logger.Logger.Info("RDP tunnel running in background",
+		"local", fmt.Sprintf("127.0.0.1:%d", localPort),
+		"target", fmt.Sprintf("%s:%d", inst.PrimaryIP, remoteRDPPort),
+		"logs", logFile)
+	logger.Logger.Info("Connect with your RDP client:")
+	logger.Logger.Info("  Windows", "command", fmt.Sprintf("mstsc /v:127.0.0.1:%d", localPort))
+	logger.Logger.Info("  macOS  ", "command", fmt.Sprintf("open \"rdp://127.0.0.1:%d\"", localPort))
+	logger.Logger.Info("  Linux  ", "command", fmt.Sprintf("xfreerdp /v:127.0.0.1:%d /u:<user>", localPort))
+	return nil
 }

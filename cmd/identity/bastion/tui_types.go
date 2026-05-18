@@ -44,6 +44,7 @@ const (
 	TypeSCPDownload    SessionType = "SCP Download"
 	TypeManagedSSH     SessionType = "Managed SSH"
 	TypePortForwarding SessionType = "Port-Forwarding"
+	TypeRDP            SessionType = "RDP"
 )
 
 // DatabaseType identifies the type of database to connect to.
@@ -184,7 +185,7 @@ type SessionTypeModel struct {
 func SessionTypesForTarget(tType TargetType) []SessionType {
 	switch tType {
 	case TargetInstance:
-		return []SessionType{TypeSCP, TypeSCPDownload, TypeManagedSSH, TypePortForwarding}
+		return []SessionType{TypeSCP, TypeSCPDownload, TypeManagedSSH, TypePortForwarding, TypeRDP}
 	case TargetOKE:
 		return []SessionType{TypeManagedSSH, TypePortForwarding}
 	case TargetDatabase, TargetLoadBalancer:
