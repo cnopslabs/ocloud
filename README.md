@@ -37,7 +37,7 @@ Whether you're exploring instances, working with databases, or need to quickly f
 - **Bastion**: Comprehensive bastion and session management
   - List and explore existing bastions
   - Create interactive bastion sessions with TUI-guided flows
-  - Connect to Compute Instances (Managed SSH, Port Forwarding, SCP Upload & SCP Download)
+  - Connect to Compute Instances (Managed SSH, Port Forwarding, RDP, SCP Upload & SCP Download)
   - Connect to Databases (Autonomous DB, HeatWave, and OCI Cache via Port Forwarding)
   - Connect to OKE Clusters (Managed SSH to nodes & Port Forwarding to API server)
   - Connect to Load Balancers (Port Forwarding with TUI selection and health summaries)
@@ -360,11 +360,23 @@ ocloud identity bastion create
 # Supports both files and directories (recursive copy) with real-time progress
 ```
 
-**Port Forwarding**: Create an SSH tunnel to instance ports (e.g., VNC, RDP, custom apps)
+**Port Forwarding**: Create an SSH tunnel to any TCP port on the instance (VNC, custom apps, etc.). Supports privileged local ports (e.g., 80, 443) with sudo password validation.
 ```bash
 ocloud identity bastion create
 # Select: Session → Choose Bastion → Instance → Port Forwarding → Pick Instance → Enter Port
-# SSH tunnel runs in background, logs written to ~/.oci/.ocloud/logs/
+# Default port: 5901 (VNC). Picking a port <1024 prompts for sudo before the tunnel starts.
+# SSH tunnel runs in background, logs written to ~/.oci/sessions/<profile>/logs/
+```
+
+**RDP (Windows)**: Open an RDP tunnel to a Windows instance via Port Forwarding on TCP 3389
+```bash
+ocloud identity bastion create
+# Select: Session → Choose Bastion → Instance → RDP → Pick Instance → Enter Local Port (default 3389)
+# On tunnel-up, connect with your RDP client:
+#   macOS   : open "rdp://127.0.0.1:3389"        (uses Microsoft Remote Desktop)
+#   Windows : mstsc /v:127.0.0.1:3389
+#   Linux   : xfreerdp /v:127.0.0.1:3389 /u:<user>
+# Picking a privileged local port (e.g., 80) prompts for sudo; the remote port is always 3389.
 ```
 
 #### Database Connections
@@ -573,26 +585,6 @@ ocloud identity bastion create
 # Tunnel runs in background, kubectl now works via localhost:6443
 kubectl get nodes
 kubectl get pods --all-namespaces
-```
-
-### SSH to Compute Instance via Bastion
-
-Interactive SSH session to a private compute instance:
-
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Instance → Managed SSH → Pick Instance
-# Provides direct interactive SSH shell
-```
-
-### Secure File Transfer (SCP) via Bastion
-
-Interactively upload files to a private compute instance:
-
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → SCP → Pick Instance → Pick Local File
-# Guided flow for SSH keys, file selection, and remote destination
 ```
 
 ### Search and Connect Workflow
