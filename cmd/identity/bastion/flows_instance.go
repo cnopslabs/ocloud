@@ -91,18 +91,22 @@ func connectInstance(ctx context.Context, appCtx *app.ApplicationContext, svc *b
 		logger.Logger.Info("Executing", "command", sshCmd)
 		return bastionSvc.RunShell(ctx, appCtx.Stdout, appCtx.Stderr, sshCmd)
 	case TypePortForwarding:
-		defaultPort := 5901
-		port, err := promptPortWithPrivilegedWarning("Enter port to forward (local:target)", defaultPort)
+		targetPort, err := util.PromptPort("Enter target port (service port on the instance)", 5901)
 		if err != nil {
-			return fmt.Errorf("read port: %w", err)
+			return fmt.Errorf("read target port: %w", err)
 		}
 
-		if util.IsLocalTCPPortInUse(port) {
-			return fmt.Errorf("local port %d is already in use on 127.0.0.1; choose another port", port)
+		localPort, err := promptPortWithPrivilegedWarning("Enter local port", targetPort)
+		if err != nil {
+			return fmt.Errorf("read local port: %w", err)
+		}
+
+		if util.IsLocalTCPPortInUse(localPort) {
+			return fmt.Errorf("local port %d is already in use on 127.0.0.1; choose another port", localPort)
 		}
 
 		var sudoPassword string
-		if port < 1024 {
+		if localPort < 1024 {
 			logger.Logger.Info("Validating sudo access for privileged port...")
 			var err error
 			sudoPassword, err = util.PromptPassword("Password")
@@ -115,11 +119,11 @@ func connectInstance(ctx context.Context, appCtx *app.ApplicationContext, svc *b
 			logger.Logger.Info("Sudo access validated successfully")
 		}
 
-		sessID, err := svc.EnsurePortForwardSession(ctx, b.OCID, inst.PrimaryIP, port, pubKey)
+		sessID, err := svc.EnsurePortForwardSession(ctx, b.OCID, inst.PrimaryIP, targetPort, pubKey)
 		if err != nil {
 			return fmt.Errorf("ensure port forward: %w", err)
 		}
-		sshTunnelArgs, err := bastionSvc.BuildPortForwardArgs(privKey, sessID, region, inst.PrimaryIP, port, port)
+		sshTunnelArgs, err := bastionSvc.BuildPortForwardArgs(privKey, sessID, region, inst.PrimaryIP, localPort, targetPort)
 		if err != nil {
 			return fmt.Errorf("build args: %w", err)
 		}
@@ -128,20 +132,19 @@ func connectInstance(ctx context.Context, appCtx *app.ApplicationContext, svc *b
 			pid     int
 			logFile string
 		)
-		if port < 1024 {
-			pid, logFile, err = bastionSvc.SpawnDetachedWithSudo(sshTunnelArgs, port, inst.PrimaryIP, sudoPassword)
+		if localPort < 1024 {
+			pid, logFile, err = bastionSvc.SpawnDetachedWithSudo(sshTunnelArgs, localPort, inst.PrimaryIP, sudoPassword)
 		} else {
-			pid, logFile, err = bastionSvc.SpawnDetached(sshTunnelArgs, port, inst.PrimaryIP)
+			pid, logFile, err = bastionSvc.SpawnDetached(sshTunnelArgs, localPort, inst.PrimaryIP)
 		}
 		if err != nil {
 			return fmt.Errorf("spawn detached: %w", err)
 		}
 		logger.Logger.V(logger.Debug).Info("spawned tunnel", "pid", pid)
 
-		// Save tunnel state for tracking
 		tunnelInfo := bastionSvc.TunnelInfo{
 			PID:       pid,
-			LocalPort: port,
+			LocalPort: localPort,
 			TargetIP:  inst.PrimaryIP,
 			StartedAt: time.Now(),
 			LogFile:   logFile,
@@ -151,14 +154,18 @@ func connectInstance(ctx context.Context, appCtx *app.ApplicationContext, svc *b
 		}
 
 		logger.Logger.Info("SSH tunnel process started, waiting for connection to be ready...")
-		if err := bastionSvc.WaitForListen(port, 30*time.Second); err != nil {
-			logger.Logger.Info("Tunnel verification timed out, but the tunnel may still be establishing in the background", "port", port)
+		if err := bastionSvc.WaitForListen(localPort, 30*time.Second); err != nil {
+			logger.Logger.Info("Tunnel verification timed out, but the tunnel may still be establishing in the background", "port", localPort)
 			logger.Logger.Info("Check the tunnel status and logs if you experience connection issues")
 		} else {
 			logger.Logger.Info("Tunnel is ready and accepting connections")
 		}
 
-		logger.Logger.Info("SSH tunnel running in background", "logs", logFile)
+		logger.Logger.Info("SSH tunnel running in background",
+			"local", fmt.Sprintf("127.0.0.1:%d", localPort),
+			"target", fmt.Sprintf("%s:%d", inst.PrimaryIP, targetPort),
+			"bastion_session", sessID,
+			"logs", logFile)
 		return nil
 	case TypeRDP:
 		return connectInstanceRDP(ctx, svc, b, inst, region, pubKey, privKey)
@@ -245,6 +252,7 @@ func connectInstanceRDP(ctx context.Context, svc *bastionSvc.Service,
 	logger.Logger.Info("RDP tunnel running in background",
 		"local", fmt.Sprintf("127.0.0.1:%d", localPort),
 		"target", fmt.Sprintf("%s:%d", inst.PrimaryIP, remoteRDPPort),
+		"bastion_session", sessID,
 		"logs", logFile)
 	logger.Logger.Info("Connect with your RDP client:")
 	logger.Logger.Info("  Windows", "command", fmt.Sprintf("mstsc /v:127.0.0.1:%d", localPort))
