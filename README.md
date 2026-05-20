@@ -161,7 +161,7 @@ Example output (values will vary by version, time, and your environment):
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: v0.1.12
+	      Version: v0.1.16
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
@@ -360,12 +360,18 @@ ocloud identity bastion create
 # Supports both files and directories (recursive copy) with real-time progress
 ```
 
-**Port Forwarding**: Create an SSH tunnel to any TCP port on the instance (VNC, custom apps, etc.). Supports privileged local ports (e.g., 80, 443) with sudo password validation.
+**Port Forwarding**: Open an SSH tunnel from a local port to any TCP port on the instance. Local and target ports can differ — e.g. local `443` → instance `8443` (Jenkins). Supports privileged local ports (e.g., 80, 443) with sudo password validation.
 ```bash
 ocloud identity bastion create
-# Select: Session → Choose Bastion → Instance → Port Forwarding → Pick Instance → Enter Port
-# Default port: 5901 (VNC). Picking a port <1024 prompts for sudo before the tunnel starts.
-# SSH tunnel runs in background, logs written to ~/.oci/sessions/<profile>/logs/
+# Select: Session → Choose Bastion → Instance → Port Forwarding → Pick Instance
+# Enter target port (default 5901 = VNC) → Enter local port (default = target)
+# Picking a local port <1024 prompts for sudo before the tunnel starts.
+# Tunnel runs in background, logs in ~/.oci/sessions/<profile>/logs/
+#
+# Examples:
+#   Jenkins on instance:8443  → target=8443, local=443  (sudo) → https://localhost/
+#   VNC on instance:5901      → target=5901, local=5901       → vnc://localhost:5901
+#   K8s API on instance:6443  → target=6443, local=6443       → kubectl --server=https://localhost:6443
 ```
 
 **RDP (Windows)**: Open an RDP tunnel to a Windows instance via Port Forwarding on TCP 3389
