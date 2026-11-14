@@ -1,13 +1,13 @@
 package oke
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/services/compute/oke"
+	"github.com/cnopslabs/ocloud/internal/services/configuration/session"
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/spf13/cobra"
 )
@@ -15,8 +15,6 @@ import (
 const (
 	authSecurityToken = "security_token"
 	authAPIKey        = "api_key"
-
-	envConfigFile = "OCI_CLI_CONFIG_FILE"
 
 	// LegacyTokenCommandName is the v0.2.0 top-level name, kept as a hidden alias so
 	// hand-written kubeconfigs that call `ocloud oke-token` keep working.
@@ -101,14 +99,14 @@ func addTokenFlags(cmd *cobra.Command) {
 	var clusterID, region, profile, auth, configFile string
 
 	cmd.RunE = func(cmd *cobra.Command, _ []string) error {
+		if auth == authSecurityToken {
+			if err := ensureFreshSession(cmd, configFile, profile); err != nil {
+				return err
+			}
+		}
 		provider, err := newProvider(configFile, profile, auth)
 		if err != nil {
 			return err
-		}
-		if auth == authSecurityToken {
-			if err := checkSessionNotExpired(provider, profile, time.Now()); err != nil {
-				return err
-			}
 		}
 		if region == "" {
 			if region, err = provider.Region(); err != nil {
@@ -125,9 +123,9 @@ func addTokenFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringVar(&clusterID, "cluster-id", "", "OCID of the OKE cluster (required)")
 	cmd.Flags().StringVar(&region, "region", "", "OCI region of the cluster (defaults to the profile's region)")
-	cmd.Flags().StringVar(&profile, "profile", defaultProfile(), "OCI config profile (defaults to $"+flags.EnvKeyProfile+" or DEFAULT)")
+	cmd.Flags().StringVar(&profile, "profile", session.DefaultProfile(), "OCI config profile (defaults to $OCI_CLI_PROFILE or DEFAULT)")
 	cmd.Flags().StringVar(&auth, "auth", authSecurityToken, "Authentication type: security_token or api_key")
-	cmd.Flags().StringVar(&configFile, "config-file", defaultConfigFile(), "OCI config file (defaults to $"+envConfigFile+" or ~/.oci/config)")
+	cmd.Flags().StringVar(&configFile, "config-file", session.DefaultConfigFile(), "OCI config file (defaults to $OCI_CLI_CONFIG_FILE or ~/.oci/config)")
 	_ = cmd.MarkFlagRequired("cluster-id")
 }
 
@@ -150,39 +148,43 @@ func newProvider(configFile, profile, auth string) (common.ConfigurationProvider
 	}
 }
 
-// checkSessionNotExpired fails fast, without prompting, when the session token has expired.
-// The OCI CLI refuses here too, but asks an interactive question kubectl cannot answer.
-// Tokens that cannot be parsed are passed through and left for OKE to accept or reject.
-func checkSessionNotExpired(provider common.ConfigurationProvider, profile string, now time.Time) error {
-	keyID, err := provider.KeyID()
-	if err != nil {
-		return fmt.Errorf("reading session token for profile %q: %w", profile, err)
-	}
-	exp, err := oke.SessionTokenExpiry(keyID)
-	if err != nil {
-		return nil
-	}
-	if !now.Before(exp) {
+// sessionRefreshWindow is how close to expiry the token command refreshes the session.
+// kubectl calls the command at least every TokenTTL (4 min), so an active kubectl user
+// keeps the session alive even without the background refresher.
+const sessionRefreshWindow = 5 * time.Minute
+
+// newRefresher is replaced in tests.
+var newRefresher = func() *session.Refresher { return &session.Refresher{} }
+
+// ensureFreshSession runs before signing a token for a session profile:
+//   - expired session: fail fast, without prompting (the OCI CLI asks an interactive
+//     question kubectl cannot answer); an expired session cannot be refreshed anyway
+//   - expiring within sessionRefreshWindow: refresh it first (shared lock with the
+//     background refresher, so only one process refreshes)
+//   - refresh failed but the token is still valid: warn on stderr and carry on
+//   - token unreadable or not a JWT: pass through and let OKE accept or reject it
+func ensureFreshSession(cmd *cobra.Command, configFile, profile string) error {
+	now := time.Now()
+	exp, err := session.ValidateLocal(configFile, profile, now)
+	switch {
+	case errors.Is(err, session.ErrSessionExpired):
 		return fmt.Errorf("OCI session for profile %q expired at %s; run `ocloud config session authenticate`",
 			profile, exp.Local().Format(time.RFC1123))
+	case err != nil:
+		return nil
+	case exp.Sub(now) > sessionRefreshWindow:
+		return nil
+	}
+
+	parent := cmd.Context()
+	if parent == nil {
+		parent = context.Background()
+	}
+	ctx, cancel := context.WithTimeout(parent, 10*time.Second)
+	defer cancel()
+	if _, _, err := newRefresher().RefreshIfExpiringWithin(ctx, configFile, profile, sessionRefreshWindow); err != nil {
+		_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Warning: could not refresh OCI session for profile %q (%v); using the current token, valid until %s\n",
+			profile, err, exp.Local().Format(time.RFC1123))
 	}
 	return nil
-}
-
-func defaultProfile() string {
-	if p := os.Getenv(flags.EnvKeyProfile); p != "" {
-		return p
-	}
-	return flags.DefaultProfileName
-}
-
-func defaultConfigFile() string {
-	if f := os.Getenv(envConfigFile); f != "" {
-		return f
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return filepath.Join("~", flags.OCIConfigDirName, flags.OCIConfigFileName)
-	}
-	return filepath.Join(home, flags.OCIConfigDirName, flags.OCIConfigFileName)
 }

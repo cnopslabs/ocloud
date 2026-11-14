@@ -49,7 +49,7 @@ Most resources support the same four verbs:
 | `network` (`net`) | `vcn`, `subnet` (`sub`; uses `find` instead of `search`), `load-balancer` (`lb`), `network-load-balancer` (`nlb`) |
 | `identity` (`ident`) | `compartment` (`cmp`), `policy` (`pol`), `dynamic-group` (`dg`), `bastion` (`b`) |
 | `storage` (`stg`) | `object-storage` (`os`), which also has `upload` and `download` |
-| `config` (`conf`) | `session authenticate`, `info map-file`, `setup` |
+| `config` (`conf`) | `session authenticate`, `session validate`, `session refresh`, `info map-file`, `setup` |
 
 Examples:
 
@@ -126,6 +126,7 @@ users:
 
 - **Existing entries:** if the cluster's entry still calls `oci`, `bastion create` offers to switch it. Only that user's `exec` section changes, and the previous file is kept as `~/.kube/config.bak`. Other kubeconfig entries are left untouched.
 - **Profile:** the token command uses `--profile`, else `OCI_CLI_PROFILE`, else `DEFAULT`. The region defaults to the profile's region. Use `--auth api_key` for API-key profiles.
+- **Session refresh:** if the OCI session expires in less than 5 minutes, the token command refreshes it first, so an active kubectl user stays signed in even without the background refresher. If that refresh fails, kubectl still gets a token from the current session and a warning is printed.
 - **Expired session:** kubectl shows an error telling you to run `ocloud config session authenticate`. Unlike the OCI CLI, it never waits on a prompt.
 - **Check a token by hand:** `ocloud compute oke token --cluster-id <ocid> --region <region>` prints the ExecCredential JSON.
 - `ocloud oke-token` (v0.2.0) still works but is deprecated.
@@ -144,7 +145,7 @@ Example output (values will vary by version, time, and your environment):
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: v0.2.1
+	      Version: v0.2.2
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
@@ -195,6 +196,17 @@ Settings are resolved in this order: flags, then environment variables, then `~/
 | `OCI_TENANCY_MAP_PATH` | Tenancy map file | `~/.oci/.ocloud/tenancy-map.yaml` |
 
 `ocloud config session authenticate [--filter us] [--realm OC1]` logs in and starts a background refresher. While it runs, `ocloud` shows `OCI_AUTH_AUTO_REFRESHER: ON [pid]`.
+
+The refresher is part of ocloud (it no longer needs the OCI CLI or bash). It refreshes the session about a minute before it expires, until OCI's maximum session lifetime (usually 24 hours); then sign in again. It keeps running after you close the terminal, retries if the network is down, and catches up after your laptop sleeps. Its files are in `~/.oci/sessions/<profile>/`: `refresher.log`, `refresher.pid` and `session_status` (`valid` or `expired`). Starting it again for the same profile reuses the running one; a refresher script from an earlier ocloud version is stopped and replaced. To stop it, run `kill $(cat ~/.oci/sessions/<profile>/refresher.pid)`. To use the old script refresher for now, set `OCLOUD_REFRESHER=script` before signing in.
+
+To check or extend a session by hand, use the native replacements for `oci session validate` and `oci session refresh`. They read and write the same `~/.oci` files as the OCI CLI and print the same messages:
+
+```bash
+ocloud config session validate            # check with OCI; exit 0 if valid
+ocloud config session validate --local    # only check the expiry time, offline
+ocloud config session refresh             # extend the session (up to its maximum lifetime, usually 24h)
+ocloud config session refresh --profile DEV
+```
 
 **Tenancy map.** This file maps friendly names to OCIDs. Create it with `ocloud config setup` and view it with `ocloud config info map-file`.
 
