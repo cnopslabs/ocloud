@@ -170,7 +170,7 @@ func TestEnsureKubeconfig_WritesOcloudExec(t *testing.T) {
 	m := readYAML(t, path)
 	e := execOf(t, m, "user-mcldeglbtifa")
 	assert.Equal(t, "ocloud", filepath.Base(e["command"].(string)))
-	assert.Equal(t, []any{"oke-token", "--cluster-id", kcClusterID, "--region", kcRegion}, e["args"])
+	assert.Equal(t, []any{"compute", "oke", "token", "--cluster-id", kcClusterID, "--region", kcRegion}, e["args"])
 	assert.Equal(t, "Never", e["interactiveMode"])
 	assert.Equal(t, "https://127.0.0.1:7443", findNamed(t, m, "clusters", "cluster-mcldeglbtifa")["cluster"].(map[string]any)["server"])
 	assert.Equal(t, "c1", m["current-context"])
@@ -228,7 +228,7 @@ func TestMigrateKubeconfig_RewritesOnlyMatchingExec(t *testing.T) {
 	after := readYAML(t, path)
 	e := execOf(t, after, "user-cldeglbtifa")
 	assert.Equal(t, "ocloud", filepath.Base(e["command"].(string)))
-	assert.Equal(t, []any{"oke-token", "--cluster-id", kcClusterID, "--region", kcRegion}, e["args"])
+	assert.Equal(t, []any{"compute", "oke", "token", "--cluster-id", kcClusterID, "--region", kcRegion}, e["args"])
 
 	assert.Equal(t, findNamed(t, before, "users", "user-other"), findNamed(t, after, "users", "user-other"))
 	assert.Equal(t, before["contexts"], after["contexts"])
@@ -253,7 +253,13 @@ func TestEnsureKubeconfig_RefusesUnparseableFile(t *testing.T) {
 
 func TestMatchOKEExec(t *testing.T) {
 	legacy := &kcExec{Command: "oci", Args: []string{"ce", "cluster", "generate-token", "--cluster-id", "X", "--region", "R"}}
-	current := &kcExec{Command: "/opt/homebrew/bin/ocloud", Args: []string{"oke-token", "--cluster-id=X", "--region", "R"}}
+	current := &kcExec{Command: "/opt/homebrew/bin/ocloud", Args: []string{"compute", "oke", "token", "--cluster-id=X", "--region", "R"}}
+	alias := &kcExec{Command: "ocloud", Args: []string{"comp", "oke", "token", "--cluster-id", "X", "--region", "R"}}
+	deprecated := &kcExec{Command: "ocloud", Args: []string{"oke-token", "--cluster-id", "X", "--region", "R"}}
+	assert.True(t, matchOKEExec(alias, "X", "R"))
+	assert.True(t, matchOKEExec(deprecated, "X", "R"), "v0.2.0 hand-written entries still count as current")
+	assert.False(t, isLegacyOCIExec(deprecated))
+	assert.False(t, matchOKEExec(&kcExec{Command: "ocloud", Args: []string{"compute", "oke", "get", "--cluster-id", "X", "--region", "R"}}, "X", "R"))
 	assert.True(t, matchOKEExec(legacy, "X", "R"))
 	assert.True(t, matchOKEExec(current, "X", "R"))
 	assert.True(t, isLegacyOCIExec(legacy))

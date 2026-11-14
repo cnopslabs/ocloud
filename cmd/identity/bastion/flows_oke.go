@@ -211,12 +211,12 @@ func connectOKE(ctx context.Context, appCtx *app.ApplicationContext, svc *bastio
 			}
 		case okeSvc.KubeconfigLegacyOCI:
 			question := "The kubeconfig entry for this cluster gets tokens from the OCI CLI (`oci ce cluster generate-token`). " +
-				"Switch it to `ocloud oke-token` (no OCI CLI needed; previous file kept as ~/.kube/config.bak)?"
+				"Switch it to `ocloud compute oke token` (no OCI CLI needed; previous file kept as ~/.kube/config.bak)?"
 			if util.PromptYesNo(question) {
 				if _, err := okeSvc.MigrateKubeconfigForOKE(cluster, region); err != nil {
 					return fmt.Errorf("migrate kubeconfig: %w", err)
 				}
-				fmt.Println("Kubeconfig updated to use `ocloud oke-token`.")
+				fmt.Println("Kubeconfig updated to use `ocloud compute oke token`.")
 			}
 		case okeSvc.KubeconfigCurrent:
 		}

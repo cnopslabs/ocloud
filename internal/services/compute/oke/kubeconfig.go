@@ -89,7 +89,7 @@ const (
 	KubeconfigMissing KubeconfigStatus = iota
 	// KubeconfigLegacyOCI means an entry exists but calls `oci ce cluster generate-token`.
 	KubeconfigLegacyOCI
-	// KubeconfigCurrent means an entry exists and calls `ocloud oke-token`.
+	// KubeconfigCurrent means an entry exists and calls `ocloud compute oke token`.
 	KubeconfigCurrent
 )
 
@@ -169,7 +169,7 @@ func DefaultKubeContextName(cluster Cluster) string {
 	return "context-" + shortID(cluster.OCID)
 }
 
-// ocloudCommand returns the command kubectl should run for `oke-token`. Tests replace it.
+// ocloudCommand returns the command kubectl should run for `compute oke token`. Tests replace it.
 var ocloudCommand = func() string {
 	self, err := os.Executable()
 	if err != nil {
@@ -180,7 +180,7 @@ var ocloudCommand = func() string {
 
 // resolveOcloudCommand returns plain "ocloud" when that resolves on PATH to the running
 // binary (stable across brew upgrades); otherwise the absolute path of the running binary,
-// so a dev build is not shadowed by an older ocloud that lacks `oke-token`.
+// so a dev build is not shadowed by an older ocloud that lacks `compute oke token`.
 func resolveOcloudCommand(self string, lookPath func(string) (string, error)) string {
 	selfReal, err := filepath.EvalSymlinks(self)
 	if err != nil {
@@ -194,14 +194,17 @@ func resolveOcloudCommand(self string, lookPath func(string) (string, error)) st
 	return self
 }
 
-// newOKEExec returns the exec entry that makes kubectl call `ocloud oke-token`.
+// tokenCommandArgs is the ocloud subcommand path kubectl runs to get a token.
+var tokenCommandArgs = []string{"compute", "oke", "token"}
+
+// newOKEExec returns the exec entry that makes kubectl call `ocloud compute oke token`.
 // Like the OCI CLI entries it replaces, it does not pin a profile: kubectl's
 // OCI_CLI_PROFILE environment decides, so switching profiles keeps working.
 func newOKEExec(clusterID, region string) *kcExec {
 	return &kcExec{
 		APIVersion:      ExecCredentialAPIVersion,
 		Command:         ocloudCommand(),
-		Args:            []string{"oke-token", "--cluster-id", clusterID, "--region", region},
+		Args:            append(slices.Clone(tokenCommandArgs), "--cluster-id", clusterID, "--region", region),
 		InteractiveMode: "Never",
 	}
 }
@@ -238,7 +241,7 @@ func KubeconfigExistsForOKE(cluster Cluster, region string) (bool, error) {
 }
 
 // EnsureKubeconfigForOKE adds cluster, user and context entries for the cluster, pointing at
-// the bastion tunnel on localPort and authenticating with `ocloud oke-token`.
+// the bastion tunnel on localPort and authenticating with `ocloud compute oke token`.
 // contextName may be empty to use DefaultKubeContextName. If an entry for the cluster/region
 // already exists (in either form) it is a no-op; use MigrateKubeconfigForOKE to convert one.
 func EnsureKubeconfigForOKE(cluster Cluster, region string, localPort int, contextName string) error {
@@ -288,7 +291,7 @@ func EnsureKubeconfigForOKE(cluster Cluster, region string, localPort int, conte
 }
 
 // MigrateKubeconfigForOKE rewrites user entries that call `oci ce cluster generate-token`
-// for the cluster/region to call `ocloud oke-token` instead. Only the exec section of those
+// for the cluster/region to call `ocloud compute oke token` instead. Only the exec section of those
 // users changes; everything else is preserved and the previous file is kept as config.bak.
 // It returns how many entries were rewritten.
 func MigrateKubeconfigForOKE(cluster Cluster, region string) (int, error) {
@@ -373,7 +376,7 @@ func isLegacyOCIExec(e *kcExec) bool {
 }
 
 // matchOKEExec returns true if the exec entry generates OKE tokens for the given cluster
-// and region, either with `oci ce cluster generate-token` or `ocloud oke-token`.
+// and region, either with `oci ce cluster generate-token` or `ocloud compute oke token`.
 func matchOKEExec(e *kcExec, clusterID, region string) bool {
 	if e == nil {
 		return false
@@ -384,7 +387,7 @@ func matchOKEExec(e *kcExec, clusterID, region string) bool {
 			return false
 		}
 	case ocloudBinary:
-		if len(e.Args) == 0 || e.Args[0] != "oke-token" {
+		if !isOcloudTokenArgs(e.Args) {
 			return false
 		}
 	default:
@@ -392,6 +395,15 @@ func matchOKEExec(e *kcExec, clusterID, region string) bool {
 	}
 	flags := parseArgsToMap(e.Args)
 	return flags["--cluster-id"] == clusterID && flags["--region"] == region
+}
+
+// isOcloudTokenArgs reports whether args invoke ocloud's token command:
+// `compute|comp oke token ...` or the deprecated `oke-token ...`.
+func isOcloudTokenArgs(args []string) bool {
+	if len(args) >= 1 && args[0] == "oke-token" {
+		return true
+	}
+	return len(args) >= 3 && (args[0] == "compute" || args[0] == "comp") && args[1] == "oke" && args[2] == "token"
 }
 
 // parseArgsToMap converts a slice of CLI args into a simple flag->value map.

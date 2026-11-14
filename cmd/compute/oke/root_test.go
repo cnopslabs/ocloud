@@ -20,14 +20,15 @@ func TestOKECommand(t *testing.T) {
 	// Test that the OKE command is properly configured
 	assert.Equal(t, "oke", cmd.Use)
 	assert.Equal(t, "Explore OCI Kubernetes Engine (OKE)", cmd.Short)
-	assert.Equal(t, "Explore Oracle Cloud Infrastructure Kubernetes Engine (OKE) clusters and node pools.\nThis command allows you to list all clusters in a compartment or search specific clusters by search pattern. For each cluster, you can view detailed information including Kubernetes version, endpoint, and associated node pools.", cmd.Long)
-	assert.Equal(t, "  ocloud compute oke list\n  ocloud compute oke list --json\n  ocloud compute oke get\n  ocloud compute oke get --json\n  ocloud compute oke search myoke\n  ocloud compute oke search myoke --json", cmd.Example)
+	assert.Equal(t, "Explore Oracle Cloud Infrastructure Kubernetes Engine (OKE) clusters and node pools.\nThis command allows you to list all clusters in a compartment or search specific clusters by search pattern. For each cluster, you can view detailed information including Kubernetes version, endpoint, and associated node pools.\nThe token subcommand generates kubectl credentials for a cluster without the OCI CLI.", cmd.Long)
+	assert.Equal(t, "  ocloud compute oke list\n  ocloud compute oke list --json\n  ocloud compute oke get\n  ocloud compute oke get --json\n  ocloud compute oke search myoke\n  ocloud compute oke search myoke --json\n  ocloud compute oke token --cluster-id <cluster-ocid> --region <region>", cmd.Example)
 	assert.True(t, cmd.SilenceUsage)
 	assert.True(t, cmd.SilenceErrors)
 
 	// Test that the subcommands are added
 	subCmds := cmd.Commands()
-	assert.Equal(t, 3, len(subCmds), "oke command should have 3 subcommands")
+	assert.Equal(t, 4, len(subCmds), "oke command should have 4 subcommands")
+	assert.NotNil(t, okeSubCommand(subCmds, "token"), "oke command should have token subcommand")
 
 	// Check that the list subcommand is present
 	listCmd := okeSubCommand(subCmds, "list")
