@@ -159,12 +159,7 @@ func connectHeatWaveDatabase(ctx context.Context, appCtx *app.ApplicationContext
 	}
 
 	logger.Logger.Info("SSH tunnel process started, waiting for connection to be ready...")
-	if err := bastionSvc.WaitForListen(port, 30*time.Second); err != nil {
-		logger.Logger.Info("Tunnel verification timed out, but the tunnel may still be establishing in the background", "port", port)
-		logger.Logger.Info("Check the tunnel status and logs if you experience connection issues")
-	} else {
-		logger.Logger.Info("Tunnel is ready and accepting connections")
-	}
+	reportTunnel(port, logFile)
 
 	logger.Logger.Info("SSH tunnel running in background", "logs", logFile, "local_port", port, "database", db.DisplayName)
 	return nil
@@ -268,12 +263,7 @@ func connectAutonomousDatabase(ctx context.Context, appCtx *app.ApplicationConte
 	}
 
 	logger.Logger.Info("SSH tunnel process started, waiting for connection to be ready...")
-	if err := bastionSvc.WaitForListen(port, 30*time.Second); err != nil {
-		logger.Logger.Info("Tunnel verification timed out, but the tunnel may still be establishing in the background", "port", port)
-		logger.Logger.Info("Check the tunnel status and logs if you experience connection issues")
-	} else {
-		logger.Logger.Info("Tunnel is ready and accepting connections")
-	}
+	reportTunnel(port, logFile)
 
 	logger.Logger.Info("SSH tunnel running in background", "logs", logFile, "local_port", port, "database", db.Name)
 	return nil
@@ -375,12 +365,7 @@ func connectCacheCluster(ctx context.Context, appCtx *app.ApplicationContext, sv
 	}
 
 	logger.Logger.Info("SSH tunnel process started, waiting for connection to be ready...")
-	if err := bastionSvc.WaitForListen(port, 30*time.Second); err != nil {
-		logger.Logger.Info("Tunnel verification timed out, but the tunnel may still be establishing in the background", "port", port)
-		logger.Logger.Info("Check the tunnel status and logs if you experience connection issues")
-	} else {
-		logger.Logger.Info("Tunnel is ready and accepting connections")
-	}
+	reportTunnel(port, logFile)
 
 	logger.Logger.Info("SSH tunnel running in background", "logs", logFile, "local_port", port, "cache_cluster", cluster.DisplayName)
 	return nil
