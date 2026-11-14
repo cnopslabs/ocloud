@@ -1,4 +1,4 @@
-package oketoken
+package oke
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const clusterID = "ocid1.cluster.oc1.phx.aaaaaaaatest"
+const tokenTestClusterID = "ocid1.cluster.oc1.phx.aaaaaaaatest"
 
 // writeConfig writes an OCI config with a session-token profile and an api-key profile.
 func writeConfig(t *testing.T) string {
@@ -57,9 +57,9 @@ region=us-phoenix-1
 	return cfgFile
 }
 
-func run(t *testing.T, args ...string) (oke.ExecCredential, string, error) {
+func runToken(t *testing.T, args ...string) (oke.ExecCredential, string, error) {
 	t.Helper()
-	cmd := NewCommand()
+	cmd := NewTokenCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetErr(&bytes.Buffer{})
@@ -83,24 +83,24 @@ func decodedURL(t *testing.T, token string) string {
 
 func TestOKEToken_SessionTokenProfile(t *testing.T) {
 	cfg := writeConfig(t)
-	cred, u, err := run(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", clusterID)
+	cred, u, err := runToken(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID)
 	require.NoError(t, err)
 	assert.Equal(t, "ExecCredential", cred.Kind)
-	assert.True(t, strings.HasPrefix(u, "https://containerengine.us-phoenix-1.oraclecloud.com/cluster_request/"+clusterID+"?"),
+	assert.True(t, strings.HasPrefix(u, "https://containerengine.us-phoenix-1.oraclecloud.com/cluster_request/"+tokenTestClusterID+"?"),
 		"region should default to the profile's region: %s", u)
 	assert.Contains(t, u, "keyId%3D%22ST%24session-token-value%22", "session token must be used as keyId")
 }
 
 func TestOKEToken_RegionFlagOverridesProfile(t *testing.T) {
 	cfg := writeConfig(t)
-	_, u, err := run(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", clusterID, "--region", "eu-frankfurt-1")
+	_, u, err := runToken(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID, "--region", "eu-frankfurt-1")
 	require.NoError(t, err)
 	assert.Contains(t, u, "https://containerengine.eu-frankfurt-1.oraclecloud.com/")
 }
 
 func TestOKEToken_APIKeyProfile(t *testing.T) {
 	cfg := writeConfig(t)
-	_, u, err := run(t, "--config-file", cfg, "--profile", "APIKEY", "--auth", "api_key", "--cluster-id", clusterID)
+	_, u, err := runToken(t, "--config-file", cfg, "--profile", "APIKEY", "--auth", "api_key", "--cluster-id", tokenTestClusterID)
 	require.NoError(t, err)
 	assert.Contains(t, u, "keyId%3D%22ocid1.tenancy.oc1..t%2Focid1.user.oc1..u%2Faa%3Abb%22")
 }
@@ -109,20 +109,20 @@ func TestOKEToken_ProfileFromEnv(t *testing.T) {
 	cfg := writeConfig(t)
 	t.Setenv("OCI_CLI_PROFILE", "SESSION")
 	t.Setenv(envConfigFile, cfg)
-	_, u, err := run(t, "--cluster-id", clusterID)
+	_, u, err := runToken(t, "--cluster-id", tokenTestClusterID)
 	require.NoError(t, err)
 	assert.Contains(t, u, "ST%24session-token-value")
 }
 
 func TestOKEToken_Errors(t *testing.T) {
 	cfg := writeConfig(t)
-	_, _, err := run(t, "--config-file", cfg, "--profile", "SESSION")
+	_, _, err := runToken(t, "--config-file", cfg, "--profile", "SESSION")
 	assert.Error(t, err, "cluster-id is required")
 
-	_, _, err = run(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", clusterID, "--auth", "bogus")
+	_, _, err = runToken(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID, "--auth", "bogus")
 	assert.ErrorContains(t, err, "unsupported --auth")
 
-	_, _, err = run(t, "--config-file", cfg, "--profile", "APIKEY", "--cluster-id", clusterID)
+	_, _, err = runToken(t, "--config-file", cfg, "--profile", "APIKEY", "--cluster-id", tokenTestClusterID)
 	assert.Error(t, err, "api-key profile has no security_token_file")
 }
 
@@ -133,14 +133,30 @@ func jwtWithExp(exp time.Time) string {
 
 func TestOKEToken_ExpiredSessionFailsFast(t *testing.T) {
 	cfg := writeConfigWithToken(t, jwtWithExp(time.Now().Add(-time.Minute)))
-	_, _, err := run(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", clusterID)
+	_, _, err := runToken(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID)
 	assert.ErrorContains(t, err, "expired")
 	assert.ErrorContains(t, err, "ocloud config session authenticate")
 }
 
 func TestOKEToken_ValidSession(t *testing.T) {
 	cfg := writeConfigWithToken(t, jwtWithExp(time.Now().Add(time.Hour)))
-	cred, _, err := run(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", clusterID)
+	cred, _, err := runToken(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID)
 	require.NoError(t, err)
 	assert.NotEmpty(t, cred.Status.Token)
+}
+
+func TestLegacyOKETokenAlias(t *testing.T) {
+	cfg := writeConfig(t)
+	cmd := NewLegacyTokenCmd()
+	var stdout, stderr bytes.Buffer
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
+	cmd.SetArgs([]string{"--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID})
+	require.NoError(t, cmd.Execute())
+
+	var cred oke.ExecCredential
+	require.NoError(t, json.Unmarshal(stdout.Bytes(), &cred), "deprecation notice must not pollute stdout")
+	assert.NotEmpty(t, cred.Status.Token)
+	assert.Contains(t, stderr.String(), "ocloud compute oke token")
+	assert.True(t, cmd.Hidden)
 }
