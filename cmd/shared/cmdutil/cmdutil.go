@@ -15,6 +15,7 @@ func IsNoContextCommand() bool {
 	noContextCommands := map[string]bool{
 		"version": true,
 		"config":  true,
+		"conf":    true, // alias of config
 	}
 
 	// Flags that don't need context

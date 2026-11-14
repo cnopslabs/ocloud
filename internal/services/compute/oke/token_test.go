@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -131,21 +130,4 @@ func TestGenerateExecCredentialJSON(t *testing.T) {
 	assert.Equal(t, "ExecCredential", cred.Kind)
 	assert.Equal(t, "2026-11-14T10:04:00Z", cred.Status.ExpirationTimestamp)
 	assert.NotEmpty(t, cred.Status.Token)
-}
-
-func fakeJWT(exp int64) string {
-	enc := base64.RawURLEncoding.EncodeToString
-	return enc([]byte(`{"alg":"RS256"}`)) + "." + enc([]byte(fmt.Sprintf(`{"exp":%d}`, exp))) + ".sig"
-}
-
-func TestSessionTokenExpiry(t *testing.T) {
-	exp := time.Date(2026, 11, 14, 12, 0, 0, 0, time.UTC)
-	got, err := SessionTokenExpiry("ST$" + fakeJWT(exp.Unix()))
-	require.NoError(t, err)
-	assert.Equal(t, exp, got)
-
-	_, err = SessionTokenExpiry("not-a-jwt")
-	assert.Error(t, err)
-	_, err = SessionTokenExpiry(fakeJWT(0))
-	assert.Error(t, err)
 }

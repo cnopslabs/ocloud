@@ -94,27 +94,3 @@ func GenerateExecCredentialJSON(signer common.HTTPRequestSigner, region, cluster
 	}
 	return json.MarshalIndent(NewExecCredential(token, now), "", "    ")
 }
-
-// SessionTokenExpiry returns the "exp" claim of an OCI session token (a JWT).
-// The "ST$" key-id prefix is accepted and stripped.
-func SessionTokenExpiry(token string) (time.Time, error) {
-	token = strings.TrimPrefix(strings.TrimSpace(token), "ST$")
-	parts := strings.Split(token, ".")
-	if len(parts) != 3 {
-		return time.Time{}, fmt.Errorf("session token is not a JWT")
-	}
-	payload, err := base64.RawURLEncoding.DecodeString(strings.TrimRight(parts[1], "="))
-	if err != nil {
-		return time.Time{}, fmt.Errorf("decoding session token payload: %w", err)
-	}
-	var claims struct {
-		Exp int64 `json:"exp"`
-	}
-	if err := json.Unmarshal(payload, &claims); err != nil {
-		return time.Time{}, fmt.Errorf("parsing session token claims: %w", err)
-	}
-	if claims.Exp == 0 {
-		return time.Time{}, fmt.Errorf("session token has no exp claim")
-	}
-	return time.Unix(claims.Exp, 0).UTC(), nil
-}
