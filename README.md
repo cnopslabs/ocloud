@@ -1,722 +1,132 @@
-# OCloud - Oracle Cloud Infrastructure CLI Tool
+# OCloud
+
 [![CI Build](https://github.com/cnopslabs/ocloud/actions/workflows/build.yml/badge.svg)](https://github.com/cnopslabs/ocloud/actions/workflows/build.yml)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/cnopslabs/ocloud?sort=semver)
 [![Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/cnopslabs/ocloud/main/.github/badges/downloads.json&style=flat&logo=github&logoColor=white&label=downloads&labelColor=2f363d&color=brightgreen&cacheSeconds=3600)](https://github.com/cnopslabs/ocloud/releases)
-[![Version](https://img.shields.io/badge/goversion-1.24.x-blue.svg)](https://golang.org)
-[![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/cnopslabs/ocloud/main/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/cnopslabs/ocloud)](https://goreportcard.com/report/github.com/cnopslabs/ocloud)
 [![Go Coverage](https://github.com/cnopslabs/ocloud/wiki/coverage.svg)](https://raw.githack.com/wiki/cnopslabs/ocloud/coverage.html)
-## Overview
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-OCloud is a powerful command-line interface (CLI) tool designed to simplify interactions with Oracle Cloud Infrastructure (OCI). It provides a streamlined experience for exploring and retrieving information about common OCI services with a focus on usability, performance, and automation.
+A fast CLI for exploring Oracle Cloud Infrastructure (OCI). You can search and browse resources in an interactive TUI, and reach private resources through bastion tunnels. It uses your existing OCI CLI configuration.
 
-Whether you're exploring instances, working with databases, or need to quickly find resources across your OCI environment, OCloud offers an intuitive and efficient interface that works seamlessly with your existing OCI configuration.
-
-## Features
-
-### Compute Resources
-- **Instances**: List, search, and explore compute instances with interactive TUI
-- **Images**: Browse and search compute images
-- **OKE Clusters**: List, search, and explore Kubernetes clusters with node pool details
-
-### Database Services
-- **Autonomous Database**: List, search, and explore ADB instances with interactive TUI
-- **HeatWave MySQL**: List, search, and explore HeatWave database instances with interactive TUI
-- **OCI Cache Cluster**: List, search, and explore OCI Cache Clusters (Redis/Valkey) with interactive TUI
-
-### Networking
-- **VCNs**: Virtual Cloud Networks with gateways, subnets, NSGs, route tables, and security lists
-- **Subnets**: Network subnet management
-- **Load Balancers**: Explore and search load balancer configurations (L7) with health summaries
-- **Network Load Balancers**: Explore and search Network Load Balancer (L4) configurations
-
-### Identity & Access
-- **Compartments**: Navigate compartment hierarchy with tenancy-level scope support
-- **Policies**: Explore IAM policies across compartments
-- **Dynamic Groups**: Explore and search dynamic groups
-- **Bastion**: Comprehensive bastion and session management
-  - List and explore existing bastions
-  - Create interactive bastion sessions with TUI-guided flows
-  - Connect to Compute Instances (Managed SSH, Port Forwarding, RDP, SCP Upload & SCP Download)
-  - Connect to Databases (Autonomous DB, HeatWave, and OCI Cache via Port Forwarding)
-  - Connect to OKE Clusters (Managed SSH to nodes & Port Forwarding to API server)
-  - Connect to Load Balancers (Port Forwarding with TUI selection and health summaries)
-  - **TUI-driven SCP Upload**: Securely copy files to private compute instances with interactive file picker and real-time progress
-  - **TUI-driven SCP Download**: Securely copy files or directories from private compute instances with real-time progress
-  - Enhanced privileged port handling with sudo password validation
-  - Automatic SSH tunnel management with background processes
-  - Interactive SSH key pair selection
-  - Automatic kubeconfig setup for OKE connections
-
-### Storage
-- **Object Storage**: Comprehensive interactive TUI for bucket exploration and object management
-  - Browse and search buckets with tenancy-level scope support
-  - **TUI-driven Uploads**: Interactive file picker with automatic multipart upload for large files (>10MB)
-  - **TUI-driven Downloads**: Interactive bucket and object selection with local directory browser
-  - **Real-time Progress**: Visual progress bars for both upload and download operations
-
-### Core Capabilities
-- **Powerful Search**: Fuzzy, prefix, and substring matching using Bleve indexing
-- **Interactive TUI**: Navigate resources with the terminal user interface for select commands
-- **JSON Output**: Consistent structured output across all commands
-- **Pagination**: Unified pagination support (`--limit`, `--page`)
-- **Authentication**: Interactive OCI Auth with automatic session refresh
-- **Tenancy Mapping**: Friendly names for tenancies and compartments
-
-## Installation
-
-### Using Homebrew (macOS and Linux)
+## Install
 
 ```bash
-# Add the tap
 brew tap cnopslabs/ocloud https://github.com/cnopslabs/ocloud
-
-# Install ocloud
 brew install ocloud
 ```
 
-### Manual Installation
+Or download a binary from [Releases](https://github.com/cnopslabs/ocloud/releases) and put it on your `PATH`. On macOS, clear the quarantine flag with `xattr -d com.apple.quarantine ocloud`. To build from source, run `make build && make install`.
 
-Download the latest binary from the [release page](https://github.com/cnopslabs/ocloud/releases) and place it in your PATH.
+**Requirements:** a configured [OCI CLI](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm#Quickstart). You also need `kubectl` for OKE and an SSH key pair in `~/.ssh` for bastion sessions.
 
-**macOS/Linux:**
+## Quick start
+
 ```bash
-# Move the binary to a directory in your PATH
-mv ~/Downloads/ocloud ~/.local/bin
-
-# For macOS, clear quarantine (if applicable)
-sudo xattr -d com.apple.quarantine ~/.local/bin/ocloud
-
-# Make executable
-chmod +x ~/.local/bin/ocloud
+ocloud                                   # show current config and commands
+ocloud config session authenticate       # log in (keeps the session refreshed)
+ocloud compute instance search prod      # fuzzy search
+ocloud network vcn list                  # interactive TUI
+ocloud database autonomous get --json    # JSON for scripting
+ocloud identity bastion create           # guided bastion session / tunnel
 ```
 
-### Build from Source
+## Commands
+
+Most resources support the same four verbs:
+
+| Verb | Does |
+|------|------|
+| `get` | Paginated table (`--limit/-m`, `--page/-p`) |
+| `list` | Interactive TUI picker |
+| `search <query>` | Fuzzy, prefix and substring matching |
+| `--all` / `-A` | Include related details (where supported) |
+
+| Area | Resources (aliases) |
+|------|---------------------|
+| `compute` (`comp`) | `instance` (`inst`), `image` (`img`), `oke` |
+| `database` (`db`) | `autonomous` (`adb`), `heatwave` (`hw`), `cache-cluster` (`cc`) |
+| `network` (`net`) | `vcn`, `subnet` (`sub`; uses `find` instead of `search`), `load-balancer` (`lb`), `network-load-balancer` (`nlb`) |
+| `identity` (`ident`) | `compartment` (`cmp`), `policy` (`pol`), `dynamic-group` (`dg`), `bastion` (`b`) |
+| `storage` (`stg`) | `object-storage` (`os`), which also has `upload` and `download` |
+| `config` (`conf`) | `session authenticate`, `info map-file`, `setup` |
+
+Examples:
 
 ```bash
-# Clone the repository
-git clone https://github.com/cnopslabs/ocloud.git
-cd ocloud
-
-# Build and install
-make build
-make install
+ocloud db hw s 8.4 -j                       # search HeatWave, JSON output
+ocloud net vcn get -G -S -N -R -L           # VCNs with gateways, subnets, NSGs, route tables, security lists
+ocloud ident cmp get -T                     # compartments across the whole tenancy
+ocloud ident pol search monitor --scope tenancy
+ocloud stg os upload                        # pick a bucket and file; multipart for files over 10 MiB
 ```
 
-## Prerequisites
+Identity commands (`compartment`, `policy`, `dynamic-group`) accept `--scope compartment|tenancy` or `-T` for tenancy scope.
 
-- **OCI CLI**: Installed and configured ([Quickstart guide](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm#Quickstart))
-- **kubectl**: For OKE cluster interactions ([macOS](https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/) | [Linux](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/))
-- **SSH Key Pair**: Required for OCI Bastion sessions (`~/.ssh`)
+**Global flags:** `-c/--compartment`, `-t/--tenancy-id`, `--tenancy-name`, `-j/--json`, `-d/--debug`, `--log-level`, `--color`, `-v/--version`. Run `ocloud <command> --help` for details.
 
-## Quick Start
+In the TUI, `q`, `Esc` or `Ctrl+C` quits.
+
+## Bastion sessions
+
+`ocloud identity bastion create` walks you through choosing a bastion, a target, a session type, a resource and an SSH key. Tunnels run in the background and keep running after the CLI exits.
+
+| Target | Session types | Default local port |
+|--------|---------------|--------------------|
+| Compute instance | Managed SSH, port forwarding, RDP, SCP upload/download | 5901 (PF), 3389 (RDP) |
+| Autonomous DB | Port forwarding | 1521 |
+| HeatWave MySQL | Port forwarding | 3306 |
+| OCI Cache (Redis/Valkey) | Port forwarding | 6379 |
+| OKE cluster | Managed SSH to node, port forwarding to API server (offers to write the kubeconfig) | 6443 |
+| Load balancer (L7/L4) | Port forwarding | you choose |
+
+- Local ports below 1024 (such as 443) ask for your sudo password first.
+- Logs go to `~/.oci/sessions/<profile>/logs/` and tunnel state to `~/.oci/sessions/<profile>/tunnel/`.
+
+Example: query a private Autonomous DB.
 
 ```bash
-# View configuration and available commands
-ocloud
-
-# Authenticate with OCI
-ocloud config session authenticate
-
-# Search for compute instances
-ocloud compute instance search "prod"
-
-# Get HeatWave databases with pagination
-ocloud database heatwave get --limit 10 --page 1
-
-# Search Autonomous Databases in JSON format
-ocloud database autonomous search "test" --json
-
-# Interactive VCN list (TUI)
-ocloud network vcn list
-
-# Interactive object upload and download
-ocloud storage object-storage upload
-ocloud storage object-storage download
-
-# Create bastion session with interactive TUI flow
-ocloud identity bastion create
-
-# List private Load Balancers and health status
-ocloud network load-balancer list
-
-# List Network Load Balancers (NLB)
-ocloud network network-load-balancer list
-
-# List Dynamic Groups
-ocloud identity dynamic-group list
+ocloud identity bastion create   # Database → Autonomous → pick ADB → port 1521
+sqlplus admin@localhost:1521/mydb_high
 ```
 
 ## Configuration
 
-Running `ocloud` without any arguments displays the configuration details and available commands.
+Settings are resolved in this order: flags, then environment variables, then `~/.oci/config`.
 
-Example output (values will vary by version, time, and your environment):
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `OCI_CLI_PROFILE` | OCI config profile | `DEFAULT` |
+| `OCI_CLI_TENANCY` | Tenancy OCID | from profile |
+| `OCI_TENANCY_NAME` | Tenancy name (resolved through the tenancy map) | |
+| `OCI_COMPARTMENT` | Compartment name | |
+| `OCI_REGION` | Region | from profile |
+| `OCI_TENANCY_MAP_PATH` | Tenancy map file | `~/.oci/.ocloud/tenancy-map.yaml` |
 
-```
- ██████╗  ██████╗██╗      ██████╗ ██╗   ██╗██████╗
-██╔═══██╗██╔════╝██║     ██╔═══██╗██║   ██║██╔══██╗
-██║   ██║██║     ██║     ██║   ██║██║   ██║██║  ██║
-██║   ██║██║     ██║     ██║   ██║██║   ██║██║  ██║
-╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
- ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
+`ocloud config session authenticate [--filter us] [--realm OC1]` logs in and starts a background refresher. While it runs, `ocloud` shows `OCI_AUTH_AUTO_REFRESHER: ON [pid]`.
 
-	      Version: v0.1.18
-
-Configuration Details: Valid until <timestamp>
-  OCI_CLI_PROFILE: DEFAULT
-  OCI_TENANCY_NAME: cloudops
-  OCI_COMPARTMENT_NAME: cnopslabsdev1
-  OCI_AUTH_AUTO_REFRESHER: ON [<pid>]
-  PORT_FORWARDING: ON [1521, 3306, 6443]
-  OCI_TENANCY_MAP_PATH: /Users/<name>/.oci/.ocloud/tenancy-map.yaml
-
-Interact with Oracle Cloud Infrastructure
-
-Usage:
-  ocloud [flags]
-  ocloud [command]
-
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  compute     Explore OCI compute services
-  config      Manage ocloud CLI configurations file and authentication
-  database    Explore OCI Database services
-  help        Help about any command
-  identity    Explore OCI identity services
-  network     Explore OCI network services
-  storage     Explore OCI Storage services
-  version     Print the version information
-
-Flags:
-      --color                 Enable colored log messages.
-  -c, --compartment string    OCI compartment name or OCID
-  -d, --debug                 Enable debug logging
-  -h, --help                  Show help
-  -j, --json                  Output information in JSON format
-      --log-level string      Set the log verbosity (e.g., info, debug) (default "info")
-  -t, --tenancy-id string     OCI tenancy OCID
-      --tenancy-name string   Tenancy name
-  -v, --version               Print the ocloud CLI version
-```
-
-OCloud can be configured in multiple ways, with the following precedence (highest to lowest):
-
-1. Command-line flags
-2. Environment variables
-3. OCI configuration file (`~/.oci/config`)
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `OCI_CLI_PROFILE` | OCI configuration profile | `DEFAULT` |
-| `OCI_TENANCY_NAME` | Tenancy name (looked up in tenancy map) | - |
-| `OCI_COMPARTMENT` | Compartment name | - |
-| `OCI_REGION` | OCI region | - |
-| `OCI_TENANCY_MAP_PATH` | Path to tenancy mapping file | `~/.oci/.ocloud/tenancy-map.yaml` |
-
-### Authentication
-
-OCloud provides interactive authentication with automatic session refresh:
-
-```bash
-# Authenticate with OCI
-ocloud config session authenticate
-
-# Filter regions by prefix (e.g., us, eu, ap)
-ocloud config session authenticate --filter us
-
-# Filter by realm (e.g., OC1, OC2)
-ocloud config session authenticate --realm OC1
-```
-
-The **OCI Auth Refresher** is a background service that automatically refreshes your OCI session before it expires, keeping your session active for long-running operations. Status is displayed in configuration output: `OCI_AUTH_AUTO_REFRESHER: ON [PID]`.
-
-### Tenancy Mapping
-
-Map tenancy names to OCIDs using `~/.oci/.ocloud/tenancy-map.yaml`:
+**Tenancy map.** This file maps friendly names to OCIDs. Create it with `ocloud config setup` and view it with `ocloud config info map-file`.
 
 ```yaml
 - environment: Prod
-  tenancy: cncloudps
-  tenancy_id: ocid1.tenancy.oc1..aaaaaaaawdfste4i8fdsdsdkfasfds
+  tenancy: mytenancy
+  tenancy_id: ocid1.tenancy.oc1..aaaa...
   realm: OC1
-  compartments:
-    - sandbox
-    - production
-  regions:
-    - us-chicago-1
-    - us-ashburn-1
-```
-
-View tenancy mapping:
-```bash
-ocloud config info map-file
-ocloud config info map-file --realm OC1 --json
-```
-
-## Command Reference
-
-### Global Flags
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--compartment` | `-c` | OCI compartment name |
-| `--tenancy-name` | | Tenancy name |
-| `--debug` | `-d` | Enable debug logging |
-| `--json` | `-j` | Output in JSON format |
-| `--help` | `-h` | Display help |
-| `--version` | `-v` | Print version |
-| `--color` | | Enable colored output |
-| `--log-level` | | Set verbosity (debug, info, warn, error) |
-
-### Common Command Flags
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--json` | `-j` | JSON output format |
-| `--all` | `-A` | Include all related information |
-| `--limit` | `-m` | Records per page (default: 20) |
-| `--page` | `-p` | Page number (default: 1) |
-| `--scope` | | `compartment` (default) or `tenancy` |
-| `--tenancy-scope` | `-T` | Force tenancy-level scope |
-
-### Scope Control
-
-Some identity commands support compartment or tenancy scope:
-
-```bash
-# Compartments
-ocloud identity compartment get                 # configured compartment (default)
-ocloud identity compartment get --scope tenancy # whole tenancy
-ocloud identity compartment get -T              # same as above
-
-# Policies
-ocloud identity policy get --scope compartment
-ocloud identity policy search prod -T
-```
-
-### Network Resource Toggles
-
-For VCN commands, include specific resources or use `--all`:
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--gateway` | `-G` | Internet/NAT gateways |
-| `--subnet` | `-S` | Subnets |
-| `--nsg` | `-N` | Network security groups |
-| `--route-table` | `-R` | Route tables |
-| `--security-list` | `-L` | Security lists |
-| `--all` | `-A` | All of the above |
-
-**Examples:**
-```bash
-# Get VCNs with all related resources
-ocloud network vcn get --all
-ocloud network vcn get -G -S -N -R -L
-
-# Search VCNs with JSON output
-ocloud network vcn search prod -A -j
-```
-
-## Bastion Session Management
-
-OCloud provides comprehensive bastion session management with interactive TUI-guided flows for secure access to OCI resources.
-
-### Creating Bastion Sessions
-
-The `ocloud identity bastion create` command launches an interactive flow that guides you through:
-
-1. **Session Type Selection**: Choose between Bastion management or creating a new session
-2. **Bastion Selection**: Pick from your active bastions via TUI
-3. **Target Type Selection**: Choose your connection target (Instance, Database, OKE, or Load Balancer)
-4. **Session Type**: Select Managed SSH, Port Forwarding, SCP Upload, or SCP Download
-5. **Resource Selection**: Interactive TUI to pick the specific resource
-6. **SSH Key Selection**: Choose your SSH key pair from `~/.ssh`
-7. **Connection Setup**: Automatic tunnel creation and configuration
-
-### Supported Connection Types
-
-#### Compute Instance Connections
-
-**Managed SSH**: Direct interactive SSH session to compute instances
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Instance → Managed SSH → Pick Instance → Select Keys
-```
-
-**SCP Upload**: Interactive file upload to private compute instances
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Instance → SCP Upload → Pick Instance → Select Keys → Select Local File → Enter Remote Path
-# Uses TUI file picker and displays real-time progress
-```
-
-**SCP Download**: Interactive file or directory download from private compute instances
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Instance → SCP Download → Pick Instance → Select Keys → Enter Remote Path → Enter Local Path
-# Supports both files and directories (recursive copy) with real-time progress
-```
-
-**Port Forwarding**: Open an SSH tunnel from a local port to any TCP port on the instance. Local and target ports can differ — e.g. local `443` → instance `8443` (Jenkins). Supports privileged local ports (e.g., 80, 443) with sudo password validation.
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Instance → Port Forwarding → Pick Instance
-# Enter target port (default 5901 = VNC) → Enter local port (default = target)
-# Picking a local port <1024 prompts for sudo before the tunnel starts.
-# Tunnel runs in background, logs in ~/.oci/sessions/<profile>/logs/
-#
-# Examples:
-#   Jenkins on instance:8443  → target=8443, local=443  (sudo) → https://localhost/
-#   VNC on instance:5901      → target=5901, local=5901       → vnc://localhost:5901
-#   K8s API on instance:6443  → target=6443, local=6443       → kubectl --server=https://localhost:6443
-```
-
-**RDP (Windows)**: Open an RDP tunnel to a Windows instance via Port Forwarding on TCP 3389
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Instance → RDP → Pick Instance → Enter Local Port (default 3389)
-# On tunnel-up, connect with your RDP client:
-#   macOS   : open "rdp://127.0.0.1:3389"        (uses Microsoft Remote Desktop)
-#   Windows : mstsc /v:127.0.0.1:3389
-#   Linux   : xfreerdp /v:127.0.0.1:3389 /u:<user>
-# Picking a privileged local port (e.g., 80) prompts for sudo; the remote port is always 3389.
-```
-
-#### Database Connections
-
-**Autonomous Database**: Secure port forwarding to Autonomous DB private endpoints
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Database → Autonomous → Pick ADB → Enter Port (default: 1521)
-# Tunnel runs in background, connect to localhost:<port>
-```
-
-**HeatWave MySQL**: Secure port forwarding to HeatWave database instances
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Database → HeatWave → Pick HeatWave DB → Enter Port (default: 3306)
-# Tunnel runs in background, connect to localhost:<port>
-```
-
-**OCI Cache (Redis)**: Secure port forwarding to OCI Cache clusters
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Database → OCI Cache (Redis) → Pick Cache Cluster → Enter Port (default: 6379)
-# Tunnel runs in background, connect to localhost:<port>
-```
-
-#### OKE Cluster Connections
-
-**Managed SSH to Node**: Direct SSH access to OKE worker nodes
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → OKE → Managed SSH → Pick Cluster → Pick Node → Select Keys
-```
-
-**Port Forwarding to API Server**: Access Kubernetes API server via bastion
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → OKE → Port Forwarding → Pick Cluster → Enter Port (default: 6443)
-# Automatically offers to create/merge kubeconfig
-# kubectl commands work via the tunnel to localhost:<port>
-```
-
-#### Load Balancer Connections
-
-**Port Forwarding (L7 & L4)**: Secure access to private Load Balancers (L7) and Network Load Balancers (L4) with TUI-guided selection and health summaries
-```bash
-ocloud identity bastion create
-# Select: Session → Choose Bastion → Load Balancer (or Network Load Balancer) → Pick LB → Enter Port
-# Note: Supports privileged local ports (e.g., 443) with sudo password validation
-```
-
-### SSH Tunnel Management
-
-- Tunnels run as **background processes** and persist after CLI exits
-- **Logs** written to `~/.oci/sessions/<profile>/logs/ssh-tunnel-<port>-<date>.log`
-- **State tracking** in `~/.oci/sessions/<profile>/tunnel/tunnel-<port>.json`
-- Automatic **port availability** checking
-- **Privileged port support**: Secure handling of ports < 1024 with sudo password validation
-- **Connection verification** with a 30-second timeout
-
-### Listing Existing Bastions
-
-```bash
-ocloud identity bastion get              # List all bastions in compartment
-ocloud identity bastion get --json       # JSON output
-```
-
-## Command Categories
-
-### Compute
-
-```bash
-# Instances
-ocloud compute instance get
-ocloud compute instance list  # Interactive TUI
-ocloud compute instance search "roster" --json
-ocloud comp inst s "roster" -j
-
-# Images
-ocloud compute image get --limit 10
-ocloud compute image list  # Interactive TUI
-ocloud compute image search "Oracle-Linux"
-ocloud comp img s "Oracle-Linux" -j
-
-# OKE Clusters
-ocloud compute oke get
-ocloud compute oke list  # Interactive TUI
-ocloud compute oke search "orion" --json
-```
-
-### Database
-
-```bash
-# Autonomous Database
-ocloud database autonomous get --limit 10 --page 1
-ocloud database autonomous list  # Interactive TUI
-ocloud database autonomous search "test" --json
-ocloud db adb s "test" -j
-
-# HeatWave MySQL
-ocloud database heatwave get --all
-ocloud database heatwave list  # Interactive TUI
-ocloud database heatwave search "prod" --json
-ocloud db hw s "8.4" -j
-
-# OCI Cache Cluster (Redis/Valkey)
-ocloud database cache-cluster get --all
-ocloud database cache-cluster list  # Interactive TUI
-ocloud database cache-cluster search "prod" --json
-ocloud db cc s "VALKEY_7_2" -j
-# Alternative aliases: cachecluster, cc
-```
-
-### Network
-
-```bash
-# VCNs
-ocloud network vcn get --all
-ocloud network vcn list  # Interactive TUI
-ocloud network vcn search "prod" -A -j
-
-# Load Balancers (L7)
-ocloud network load-balancer get
-ocloud network load-balancer list  # Interactive TUI
-ocloud network load-balancer search "prod" --all
-ocloud net lb s "prod" -A -j
-
-# Network Load Balancers (L4)
-ocloud network network-load-balancer get
-ocloud network network-load-balancer list  # Interactive TUI
-ocloud network network-load-balancer search "prod" --all
-ocloud net nlb s "prod" -A -j
-# Alternative aliases: networkloadbalancer, nlb
-
-# Subnets
-ocloud network subnet list  # Interactive TUI
-ocloud network subnet find "pub" --json
-```
-
-### Identity
-
-```bash
-# Compartments
-ocloud identity compartment get
-ocloud identity compartment list             # Interactive TUI
-ocloud identity compartment get -T           # Tenancy scope
-ocloud identity compartment search "sandbox" --json
-
-# Policies
-ocloud identity policy get
-ocloud identity policy list                  # Interactive TUI
-ocloud identity policy search "monitor" -T
-
-# Dynamic Groups
-ocloud identity dynamic-group get
-ocloud identity dynamic-group list           # Interactive TUI
-ocloud identity dynamic-group search "prod" --json
-ocloud ident dg s "prod" -j
-
-# Bastion
-ocloud identity bastion get                  # List existing bastions
-ocloud identity bastion create               # Interactive bastion session creation
-ocloud ident b create                        # Short alias
-```
-
-### Storage
-
-```bash
-# Object Storage
-ocloud storage object-storage get
-ocloud storage object-storage search "prod" --json
-ocloud storage object-storage list      # Interactive TUI list
-ocloud storage object-storage upload    # Interactive TUI-driven upload
-ocloud storage object-storage download  # Interactive TUI-driven download
-ocloud storage os s "prod" -j
-```
-
-## Practical Examples
-
-### Secure Database Access via Bastion
-
-Connect to a private Autonomous Database through a bastion session:
-
-```bash
-# 1. Authenticate with OCI
-ocloud config session authenticate
-
-# 2. Create bastion session with interactive flow
-ocloud identity bastion create
-# Select: Session → Choose Active Bastion → Database → Autonomous → Pick ADB
-# The tunnel runs in the background on localhost:1521 (or custom port)
-
-# 3. Connect using SQL client
-sqlplus admin@localhost:1521/mydb_high
-```
-
-### OKE Cluster Management via Bastion
-
-Access a private OKE cluster's API server through port forwarding:
-
-```bash
-# Create port forwarding session to OKE API server
-ocloud identity bastion create
-# Select: Session → Choose Bastion → OKE → Port Forwarding → Pick Cluster
-# Accept kubeconfig creation/merge when prompted
-
-# Tunnel runs in background, kubectl now works via localhost:6443
-kubectl get nodes
-kubectl get pods --all-namespaces
-```
-
-### Search and Connect Workflow
-
-Combine search with bastion for quick access:
-
-```bash
-# 1. Search for HeatWave databases
-ocloud database heatwave search "prod" --json | jq '.[] | select(.lifecycleState=="ACTIVE")'
-
-# 2. Create connection to selected database
-ocloud identity bastion create
-# Select: Session → Bastion → Database → HeatWave → Pick the prod DB
-# Tunnel established to localhost:3306
-
-# 3. Connect with MySQL client
-mysql -h 127.0.0.1 -P 3306 -u admin -p
-```
-
-### Interactive Object Storage Management
-
-Effortlessly manage your files in OCI Object Storage with TUI-guided flows:
-
-#### Uploading Files
-```bash
-ocloud storage object-storage upload
-# 1. Select destination bucket from list
-# 2. Browse local filesystem to pick a file
-# 3. Monitor upload progress (multipart used for files >10MiB)
-```
-
-#### Downloading Objects
-```bash
-ocloud storage object-storage download
-# 1. Select source bucket
-# 2. Pick object(s) from the bucket list
-# 3. Choose local destination and monitor download progress
+  compartments: [sandbox, production]
+  regions: [us-ashburn-1, us-chicago-1]
 ```
 
 ## Development
 
-### Build Commands
-
-| Command | Description |
-|---------|-------------|
-| `make build` | Build the binary to `bin/ocloud` |
-| `make install` | Install to `$GOPATH/bin` |
-| `make test` | Run all tests with coverage |
-| `make fmt` | Format Go source files |
-| `make vet` | Run go vet static analysis |
-| `make lint` | Run golangci-lint |
-| `make vuln` | Run govulncheck |
-| `make clean` | Remove build artifacts |
-| `make release` | Build for all platforms and create archives |
-
-### Testing
-
-Run the comprehensive test script that covers all command categories:
-
 ```bash
-./test_ocloud.sh
+make build   # bin/ocloud
+make test    # unit tests with coverage
+make lint    # golangci-lint (also: fmt, vet, vuln)
+./test_ocloud.sh   # smoke-test every command against a live tenancy
 ```
 
-The script tests:
-- Root commands and global flags
-- Configuration commands (info, map-file, session)
-- Compute commands (instance, image, oke)
-- Identity commands (compartment, policy)
-- Network commands (subnet, vcn, load-balancer)
-- Storage commands (object-storage)
-- Database commands (autonomous, heatwave, cache-cluster)
-
-## Tips & Best Practices
-
-- **Interactive TUI Commands**: Use `q`, `Esc`, or `Ctrl+C` to quit. Exiting without selection is graceful.
-- **Search Patterns**: Searches support fuzzy matching, so typos and partial matches work.
-- **JSON Output**: Use `--json` for scripting and automation.
-- **Debug Logging**: Run with `--log-level debug` or `-d` for troubleshooting.
-- **Colored Output**: Use `--color` for better readability in terminals.
-- **Bastion Tunnels**: Background SSH tunnels persist after CLI exits. Check logs in `~/.oci/sessions/<profile>/logs/` if connection fails.
-- **OKE Access**: Port forwarding to the OKE API server automatically offers kubeconfig setup for seamless kubectl access.
-- **Database Connections**: Use bastion port forwarding for secure access to private Autonomous DB, HeatWave, and OCI Cache instances without exposing public endpoints.
-
-## Error Handling
-
-OCloud provides detailed error messages with configurable log levels:
-
-- `--log-level debug`: Most verbose, shows all logs (equivalent to `-d`)
-- `--log-level info`: Default, shows standard information
-- `--log-level warn`: Warnings and errors only
-- `--log-level error`: Errors only
-
-Enable colored output with `--color` for better visibility.
-
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](https://github.com/cnopslabs/ocloud/blob/main/CONTRIBUTING.md) for:
-- Development setup and architecture overview
-- Coding standards and testing requirements
-- Data flow patterns across domain, mapping, services, and cmd layers
-
-## Reporting Issues
-
-Use our GitHub Issue Forms for faster triage:
-- **Bug Report**: Include command(s), environment details, region/tenancy context, and debug logs
-- **Feature Request**: Describe CLI UX impact and affected layers
-
-Open a new [issue](https://github.com/cnopslabs/ocloud/issues/new/choose)
-
-**Tips for bug reports:**
-- Run with `--log-level debug` and include relevant logs (redact secrets)
-- Provide exact command(s), flags, OS/arch, and `ocloud version` output
-
-For questions, use [Discussions](https://github.com/cnopslabs/ocloud/discussions)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for architecture and standards. Report bugs and request features through [Issues](https://github.com/cnopslabs/ocloud/issues/new/choose). With a bug report, include `ocloud version` and the output of `--log-level debug`, with secrets redacted. Ask questions in [Discussions](https://github.com/cnopslabs/ocloud/discussions).
 
 ## License
 
-This project is licensed under the MIT License—see the [LICENSE](LICENSE) file for details.
-
-## Third-Party Attributions
-
-OCloud uses third-party open-source software, including:
-
-- **Oracle Cloud Infrastructure Go SDK** - Dual-licensed under UPL-1.0 or Apache-2.0
-  Copyright (c) 2016, 2024, Oracle and/or its affiliates
-
-For a complete list of third-party software and their licenses, see:
-- [NOTICE](NOTICE) - Third-party software notices and attributions
-- [third_party/](third_party/) - Full license texts for dependencies
+MIT. See [LICENSE](LICENSE). Third-party notices, including the OCI Go SDK (UPL-1.0 / Apache-2.0), are in [NOTICE](NOTICE) and [third_party/](third_party/).
