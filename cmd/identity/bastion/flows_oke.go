@@ -189,19 +189,36 @@ func connectOKE(ctx context.Context, appCtx *app.ApplicationContext, svc *bastio
 			return fmt.Errorf("local port %d is already in use on 127.0.0.1; choose another port", port)
 		}
 
-		exists, err := okeSvc.KubeconfigExistsForOKE(cluster, region)
+		kcStatus, err := okeSvc.KubeconfigStatusForOKE(cluster, region)
 		if err != nil {
 			return fmt.Errorf("check kubeconfig: %w", err)
 		}
-		if !exists {
+		switch kcStatus {
+		case okeSvc.KubeconfigMissing:
 			question := "Kubeconfig for this OKE cluster was not found in ~/.kube/config. Create and merge it now?"
 			if util.PromptYesNo(question) {
-				if err := okeSvc.EnsureKubeconfigForOKE(cluster, region, port); err != nil {
+				ctxName := okeSvc.DefaultKubeContextName(cluster)
+				if util.PromptYesNo(fmt.Sprintf("Do you want to enter a custom kube context name for this cluster? (Default is '%s')", ctxName)) {
+					if name, err := util.PromptString("Enter kube context name", ctxName); err == nil {
+						ctxName = name
+					}
+				}
+				if err := okeSvc.EnsureKubeconfigForOKE(cluster, region, port, ctxName); err != nil {
 					return fmt.Errorf("ensure kubeconfig: %w", err)
 				}
 			} else {
 				logger.Logger.Info("Skipping kubeconfig creation for this OKE cluster.")
 			}
+		case okeSvc.KubeconfigLegacyOCI:
+			question := "The kubeconfig entry for this cluster gets tokens from the OCI CLI (`oci ce cluster generate-token`). " +
+				"Switch it to `ocloud oke-token` (no OCI CLI needed; previous file kept as ~/.kube/config.bak)?"
+			if util.PromptYesNo(question) {
+				if _, err := okeSvc.MigrateKubeconfigForOKE(cluster, region); err != nil {
+					return fmt.Errorf("migrate kubeconfig: %w", err)
+				}
+				fmt.Println("Kubeconfig updated to use `ocloud oke-token`.")
+			}
+		case okeSvc.KubeconfigCurrent:
 		}
 
 		localPort := port
