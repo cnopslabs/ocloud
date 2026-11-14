@@ -113,7 +113,7 @@ function get_remaining_session_duration() {
 }
 
 function refresh_session() {
-  if oci session refresh --profile "$OCI_CLI_PROFILE" 2>&1 >> "$LOG_FILE"; then
+  if oci session refresh --profile "$OCI_CLI_PROFILE" >> "$LOG_FILE" 2>&1; then
     echo "[INFO] Session refreshed successfully." >> "$LOG_FILE"
     return 0
   else
