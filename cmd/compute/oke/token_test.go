@@ -9,6 +9,9 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,6 +19,7 @@ import (
 	"time"
 
 	"github.com/cnopslabs/ocloud/internal/services/compute/oke"
+	"github.com/cnopslabs/ocloud/internal/services/configuration/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -108,7 +112,7 @@ func TestOKEToken_APIKeyProfile(t *testing.T) {
 func TestOKEToken_ProfileFromEnv(t *testing.T) {
 	cfg := writeConfig(t)
 	t.Setenv("OCI_CLI_PROFILE", "SESSION")
-	t.Setenv(envConfigFile, cfg)
+	t.Setenv("OCI_CLI_CONFIG_FILE", cfg)
 	_, u, err := runToken(t, "--cluster-id", tokenTestClusterID)
 	require.NoError(t, err)
 	assert.Contains(t, u, "ST%24session-token-value")
@@ -159,4 +163,83 @@ func TestLegacyOKETokenAlias(t *testing.T) {
 	assert.NotEmpty(t, cred.Status.Token)
 	assert.Contains(t, stderr.String(), "ocloud compute oke token")
 	assert.True(t, cmd.Hidden)
+}
+
+// fakeAuth serves POST /v1/authentication/refresh and points newRefresher at it.
+func fakeAuth(t *testing.T, status int, reply string) *int {
+	t.Helper()
+	calls := 0
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		assert.Equal(t, "/v1/authentication/refresh", r.URL.Path)
+		w.WriteHeader(status)
+		_, _ = w.Write([]byte(reply))
+	}))
+	t.Cleanup(srv.Close)
+	orig := newRefresher
+	newRefresher = func() *session.Refresher {
+		return &session.Refresher{HTTPClient: srv.Client(), Endpoint: func(string) string { return srv.URL }}
+	}
+	t.Cleanup(func() { newRefresher = orig })
+	return &calls
+}
+
+func runTokenWithStderr(t *testing.T, args ...string) (oke.ExecCredential, string, error) {
+	t.Helper()
+	cmd := NewTokenCmd()
+	var stdout, stderr bytes.Buffer
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
+	cmd.SetArgs(args)
+	err := cmd.Execute()
+	var cred oke.ExecCredential
+	if err == nil {
+		require.NoError(t, json.Unmarshal(stdout.Bytes(), &cred), "stdout must stay pure JSON")
+	}
+	return cred, stderr.String(), err
+}
+
+func TestOKEToken_RefreshesSessionNearExpiry(t *testing.T) {
+	cfg := writeConfigWithToken(t, jwtWithExp(time.Now().Add(2*time.Minute)))
+	fresh := jwtWithExp(time.Now().Add(time.Hour))
+	calls := fakeAuth(t, 200, `{"token":"`+fresh+`"}`)
+
+	cred, stderr, err := runTokenWithStderr(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID)
+	require.NoError(t, err)
+	assert.Equal(t, 1, *calls)
+	assert.Empty(t, stderr, "a successful refresh is silent")
+
+	tokenFile := filepath.Join(filepath.Dir(cfg), "token")
+	got, _ := os.ReadFile(tokenFile)
+	assert.Equal(t, fresh, string(got))
+	assert.Contains(t, decodedURL(t, cred.Status.Token), url.QueryEscape("ST$"+fresh), "token is signed with the refreshed session")
+}
+
+func TestOKEToken_NoRefreshWhenSessionHasTime(t *testing.T) {
+	cfg := writeConfigWithToken(t, jwtWithExp(time.Now().Add(30*time.Minute)))
+	calls := fakeAuth(t, 200, `{"token":"x"}`)
+	_, _, err := runTokenWithStderr(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID)
+	require.NoError(t, err)
+	assert.Equal(t, 0, *calls)
+}
+
+func TestOKEToken_RefreshFailureStillIssuesToken(t *testing.T) {
+	old := jwtWithExp(time.Now().Add(2 * time.Minute))
+	cfg := writeConfigWithToken(t, old)
+	fakeAuth(t, 500, "boom")
+
+	cred, stderr, err := runTokenWithStderr(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID)
+	require.NoError(t, err)
+	assert.NotEmpty(t, cred.Status.Token)
+	assert.Contains(t, stderr, "Warning: could not refresh OCI session")
+	got, _ := os.ReadFile(filepath.Join(filepath.Dir(cfg), "token"))
+	assert.Equal(t, old, string(got))
+}
+
+func TestOKEToken_ExpiredSessionDoesNotCallAuth(t *testing.T) {
+	cfg := writeConfigWithToken(t, jwtWithExp(time.Now().Add(-time.Minute)))
+	calls := fakeAuth(t, 200, `{"token":"x"}`)
+	_, _, err := runTokenWithStderr(t, "--config-file", cfg, "--profile", "SESSION", "--cluster-id", tokenTestClusterID)
+	assert.ErrorContains(t, err, "expired")
+	assert.Equal(t, 0, *calls)
 }

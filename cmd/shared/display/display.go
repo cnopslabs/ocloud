@@ -2,14 +2,13 @@ package display
 
 import (
 	"bufio"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/cnopslabs/ocloud/internal/config/flags"
+	"github.com/cnopslabs/ocloud/internal/services/configuration/session"
 	bastionSvc "github.com/cnopslabs/ocloud/internal/services/identity/bastion"
 )
 
@@ -145,75 +145,20 @@ type RefresherStatus struct {
 	Display   string
 }
 
-// CheckOCIAuthRefresherStatus checks if the OCI auth refresher script is running for the current profile
+// CheckOCIAuthRefresherStatus reports whether a session refresher runs for the current
+// profile: the native one (`ocloud config session refresher`) or the legacy
+// oci_auth_refresher.sh. A stale refresher.pid is removed.
 func CheckOCIAuthRefresherStatus() RefresherStatus {
 	profile := os.Getenv(flags.EnvKeyProfile)
 	if profile == "" {
-		return RefresherStatus{
-			IsRunning: false,
-			PID:       "",
-			Display:   redStyle.Sprint("OFF"),
-		}
+		return RefresherStatus{Display: redStyle.Sprint("OFF")}
 	}
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return RefresherStatus{
-			IsRunning: false,
-			PID:       "",
-			Display:   redStyle.Sprint("OFF"),
-		}
+	pid, kind := session.RunningRefresher(profile)
+	if kind == session.RefresherNone {
+		return RefresherStatus{Display: redStyle.Sprint("OFF")}
 	}
-
-	pidFilePath := filepath.Join(homeDir, flags.OCIConfigDirName, flags.OCISessionsDirName, profile, flags.OCIRefresherPIDFile)
-
-	pidBytes, err := os.ReadFile(pidFilePath)
-	if err != nil {
-		return RefresherStatus{
-			IsRunning: false,
-			PID:       "",
-			Display:   redStyle.Sprint("OFF"),
-		}
-	}
-
-	pidStr := strings.TrimSpace(string(pidBytes))
-
-	// Check if the process with this PID is running
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	// Check if the process exists
-	cmd := exec.CommandContext(ctx, "ps", "-p", pidStr, "-o", "pid=")
-	if err := cmd.Run(); err != nil {
-		_ = os.Remove(pidFilePath)
-		return RefresherStatus{
-			IsRunning: false,
-			PID:       "",
-			Display:   redStyle.Sprint("OFF"),
-		}
-	}
-
-	// Then check if it's actually the refresher script for this profile
-	cmd = exec.CommandContext(ctx, "pgrep", "-af", fmt.Sprintf("oci_auth_refresher.sh.*%s", profile))
-	out, err := cmd.CombinedOutput()
-	outStr := strings.TrimSpace(string(out))
-
-	if err == nil && len(outStr) > 0 && strings.Contains(outStr, pidStr) {
-		return RefresherStatus{
-			IsRunning: true,
-			PID:       pidStr,
-			Display:   greenStyle.Sprintf("ON [%s]", pidStr),
-		}
-	}
-
-	// Process exists, but it's not the refresher script for this profile
-	// Remove the PID file as it's stale
-	_ = os.Remove(pidFilePath)
-	return RefresherStatus{
-		IsRunning: false,
-		PID:       "",
-		Display:   redStyle.Sprint("OFF"),
-	}
+	pidStr := strconv.Itoa(pid)
+	return RefresherStatus{IsRunning: true, PID: pidStr, Display: greenStyle.Sprintf("ON [%s]", pidStr)}
 }
 
 // PortForwardingStatus represents the status of active port-forwarding sessions
