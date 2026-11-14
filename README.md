@@ -81,7 +81,8 @@ In the TUI, `q`, `Esc` or `Ctrl+C` quits.
 | Load balancer (L7/L4) | Port forwarding | you choose |
 
 - Local ports below 1024 (such as 443) ask for your sudo password first.
-- Logs go to `~/.oci/sessions/<profile>/logs/` and tunnel state to `~/.oci/sessions/<profile>/tunnel/`.
+- Logs go to `~/.oci/sessions/<profile>/logs/` and tunnel state to `~/.oci/sessions/<profile>/tunnels/`.
+- **Network requirement:** the target's subnet (security list or NSG) must allow TCP ingress from the bastion's private endpoint IP on the target port (22, 3389, 5901, and so on). Your public IP must also be in the bastion's client CIDR allowlist. ocloud only checks that the bastion and target share a VCN. "Tunnel is ready" means the local port is listening, not that the target answers. If your client can't connect, look for `open failed: connect failed` in the tunnel log.
 
 Example: query a private Autonomous DB.
 
