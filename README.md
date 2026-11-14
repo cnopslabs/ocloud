@@ -81,7 +81,8 @@ In the TUI, `q`, `Esc` or `Ctrl+C` quits.
 | Load balancer (L7/L4) | Port forwarding | you choose |
 
 - Local ports below 1024 (such as 443) ask for your sudo password first.
-- Logs go to `~/.oci/sessions/<profile>/logs/` and tunnel state to `~/.oci/sessions/<profile>/tunnel/`.
+- Logs go to `~/.oci/sessions/<profile>/logs/` and tunnel state to `~/.oci/sessions/<profile>/tunnels/`.
+- **Network requirement:** the target's subnet (security list or NSG) must allow TCP ingress from the bastion's private endpoint IP on the target port (22, 3389, 5901, and so on). Your public IP must also be in the bastion's client CIDR allowlist. ocloud only checks that the bastion and target share a VCN. "Tunnel is ready" means the local port is listening, not that the target answers. If your client can't connect, look for `open failed: connect failed` in the tunnel log.
 
 Example: query a private Autonomous DB.
 
@@ -91,6 +92,57 @@ sqlplus admin@localhost:1521/mydb_high
 ```
 
 ## Configuration
+
+Running `ocloud` without any arguments displays the configuration details and available commands.
+
+Example output (values will vary by version, time, and your environment):
+
+```
+ ██████╗  ██████╗██╗      ██████╗ ██╗   ██╗██████╗
+██╔═══██╗██╔════╝██║     ██╔═══██╗██║   ██║██╔══██╗
+██║   ██║██║     ██║     ██║   ██║██║   ██║██║  ██║
+██║   ██║██║     ██║     ██║   ██║██║   ██║██║  ██║
+╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
+ ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
+
+	      Version: v0.1.19
+
+Configuration Details: Valid until <timestamp>
+  OCI_CLI_PROFILE: DEFAULT
+  OCI_TENANCY_NAME: cloudops
+  OCI_COMPARTMENT_NAME: cnopslabsdev1
+  OCI_AUTH_AUTO_REFRESHER: ON [<pid>]
+  PORT_FORWARDING: ON [1521, 3306, 6443]
+  OCI_TENANCY_MAP_PATH: /Users/<name>/.oci/.ocloud/tenancy-map.yaml
+
+Interact with Oracle Cloud Infrastructure
+
+Usage:
+  ocloud [flags]
+  ocloud [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  compute     Explore OCI compute services
+  config      Manage ocloud CLI configurations file and authentication
+  database    Explore OCI Database services
+  help        Help about any command
+  identity    Explore OCI identity services
+  network     Explore OCI network services
+  storage     Explore OCI Storage services
+  version     Print the version information
+
+Flags:
+      --color                 Enable colored log messages.
+  -c, --compartment string    OCI compartment name or OCID
+  -d, --debug                 Enable debug logging
+  -h, --help                  Show help
+  -j, --json                  Output information in JSON format
+      --log-level string      Set the log verbosity (e.g., info, debug) (default "info")
+  -t, --tenancy-id string     OCI tenancy OCID
+      --tenancy-name string   Tenancy name
+  -v, --version               Print the ocloud CLI version
+```
 
 Settings are resolved in this order: flags, then environment variables, then `~/.oci/config`.
 
