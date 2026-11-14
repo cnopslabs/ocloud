@@ -109,11 +109,15 @@ Settings are resolved in this order: flags, then environment variables, then `~/
 
 ```yaml
 - environment: Prod
-  tenancy: mytenancy
-  tenancy_id: ocid1.tenancy.oc1..aaaa...
+  tenancy: cncloudps
+  tenancy_id: ocid1.tenancy.oc1..aaaaaaaawdfste4i8fdsdsdkfasfds
   realm: OC1
-  compartments: [sandbox, production]
-  regions: [us-ashburn-1, us-chicago-1]
+  compartments:
+    - sandbox
+    - production
+  regions:
+    - us-chicago-1
+    - us-ashburn-1
 ```
 
 ## Development
