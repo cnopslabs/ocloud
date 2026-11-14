@@ -9,6 +9,7 @@ import (
 	"github.com/cnopslabs/ocloud/cmd/database"
 	"github.com/cnopslabs/ocloud/cmd/identity"
 	"github.com/cnopslabs/ocloud/cmd/network"
+	"github.com/cnopslabs/ocloud/cmd/oketoken"
 	"github.com/cnopslabs/ocloud/cmd/storage"
 	"github.com/cnopslabs/ocloud/cmd/version"
 	"github.com/cnopslabs/ocloud/internal/app"
@@ -34,6 +35,7 @@ func CreateRootCmd(appCtx *app.ApplicationContext) *cobra.Command {
 	rootCmd.AddCommand(version.NewVersionCommand())
 	version.AddVersionFlag(rootCmd, os.Stdout)
 	rootCmd.AddCommand(configuration.NewConfigCmd())
+	rootCmd.AddCommand(oketoken.NewCommand())
 
 	// If appCtx is not nil, add commands that need context
 	if appCtx != nil {

@@ -21,6 +21,10 @@ func TestIsNoContextCommand(t *testing.T) {
 	os.Args = []string{"ocloud", "config"}
 	assert.True(t, IsNoContextCommand(), "should return true for 'config' command")
 
+	// Test with oke-token (kubectl exec plugin) command
+	os.Args = []string{"ocloud", "oke-token", "--cluster-id", "x"}
+	assert.True(t, IsNoContextCommand(), "should return true for 'oke-token' command")
+
 	// Test with version flag (short)
 	os.Args = []string{"ocloud", "-v"}
 	assert.True(t, IsNoContextCommand(), "should return true for '-v' flag")

@@ -15,6 +15,8 @@ func IsNoContextCommand() bool {
 	noContextCommands := map[string]bool{
 		"version": true,
 		"config":  true,
+		// kubectl exec plugin: must stay fast and print only JSON on stdout
+		"oke-token": true,
 	}
 
 	// Flags that don't need context

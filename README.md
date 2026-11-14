@@ -91,6 +91,22 @@ ocloud identity bastion create   # Database → Autonomous → pick ADB → port
 sqlplus admin@localhost:1521/mydb_high
 ```
 
+## OKE tokens without the OCI CLI
+
+`ocloud oke-token` is a kubectl exec credential plugin that generates OKE tokens natively, replacing `oci ce cluster generate-token`. To use it, point a kubeconfig user at ocloud:
+
+```yaml
+users:
+- name: my-oke-user
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      command: ocloud
+      args: [oke-token, --cluster-id, ocid1.cluster.oc1..., --region, us-ashburn-1]
+```
+
+It uses your session token profile (`OCI_CLI_PROFILE` or `--profile`; `--auth api_key` for API-key profiles). If the session has expired, it exits with an error instead of prompting. Kubeconfig entries written by `bastion create` still use the `oci` command for now.
+
 ## Configuration
 
 Running `ocloud` without any arguments displays the configuration details and available commands.
@@ -105,7 +121,7 @@ Example output (values will vary by version, time, and your environment):
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: v0.1.19
+	      Version: v0.2.0
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT
