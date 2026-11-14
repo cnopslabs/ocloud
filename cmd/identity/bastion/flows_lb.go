@@ -203,12 +203,7 @@ func connectLoadBalancer(ctx context.Context, appCtx *app.ApplicationContext, sv
 	}
 
 	logger.Logger.Info("SSH tunnel process started, waiting for connection to be ready...")
-	if err := bastionSvc.WaitForListen(localPort, 30*time.Second); err != nil {
-		logger.Logger.Info("Tunnel verification timed out, but the tunnel may still be establishing in the background", "port", localPort)
-		logger.Logger.Info("Check the tunnel status and logs if you experience connection issues")
-	} else {
-		logger.Logger.Info("Tunnel is ready and accepting connections")
-	}
+	reportTunnel(localPort, logFile)
 
 	logger.Logger.Info("SSH tunnel to Load Balancer running",
 		"access", fmt.Sprintf("https://127.0.0.1:%d", localPort),

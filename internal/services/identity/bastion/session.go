@@ -489,7 +489,7 @@ func SpawnDetached(args []string, localPort int, targetIP string) (int, string, 
 		strings.Join(args, " "))
 	_, _ = f.WriteString(header)
 
-	verboseArgs := append([]string{"-v"}, args...)
+	verboseArgs := append([]string{"-vv"}, args...)
 
 	cmd := exec.Command(sshPath, verboseArgs...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true} // detach from our session/TTY
@@ -576,8 +576,8 @@ func SpawnDetachedWithSudo(args []string, localPort int, targetIP string, sudoPa
 		strings.Join(args, " "))
 	_, _ = f.WriteString(header)
 
-	// Add -v to args
-	verboseArgs := append([]string{"-v"}, args...)
+	// -vv logs "open confirm" (DEBUG2) so CheckTunnel can tell success from failure
+	verboseArgs := append([]string{"-vv"}, args...)
 
 	// Construct sudo command: sudo -S -p '' ssh -v ...
 	// -S: read password from stdin
