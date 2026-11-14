@@ -16,6 +16,7 @@ import (
 	"github.com/cnopslabs/ocloud/internal/config/flags"
 	"github.com/cnopslabs/ocloud/internal/logger"
 	"github.com/cnopslabs/ocloud/internal/services/configuration/info"
+	"github.com/cnopslabs/ocloud/internal/services/configuration/session"
 	"github.com/cnopslabs/ocloud/internal/services/util"
 	"github.com/cnopslabs/ocloud/scripts"
 
@@ -389,9 +390,40 @@ func (s *Service) performInteractiveAuthentication(filter, realm string) (*Authe
 	return result, nil
 }
 
-// RunOCIAuthRefresher runs the OCI auth refresher script for the specified profile.
+// envRefresherImpl selects the refresher implementation; "script" restores the legacy
+// bash refresher (which needs the OCI CLI). Kept for one release as an escape hatch.
+const envRefresherImpl = "OCLOUD_REFRESHER"
+
+// runOCIAuthRefresher starts the background session refresher for the profile.
 func (s *Service) runOCIAuthRefresher(profile string) error {
-	logger.Logger.V(logger.Info).Info("Starting OCI auth refresher setup.", "profile", profile)
+	if os.Getenv(envRefresherImpl) == "script" {
+		return s.runLegacyScriptRefresher(profile)
+	}
+	logger.Logger.V(logger.Info).Info("Starting OCI auth refresher.", "profile", profile)
+
+	res, err := session.StartRefresher(session.DefaultConfigFile(), profile)
+	if err != nil {
+		return fmt.Errorf("failed to start OCI auth refresher: %w", err)
+	}
+	switch {
+	case res.AlreadyRunning:
+		fmt.Printf("\nOCI auth refresher is already running for profile %s with PID %d\n", profile, res.PID)
+	case res.ReplacedScript:
+		fmt.Printf("\nOCI auth refresher started for profile %s with PID %d (replaced the old script refresher)\n", profile, res.PID)
+	default:
+		fmt.Printf("\nOCI auth refresher started for profile %s with PID %d\n", profile, res.PID)
+	}
+	fmt.Printf("Log: %s\n", res.LogFile)
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("\nPress Enter to continue... ")
+	_, _ = reader.ReadString('\n')
+	return nil
+}
+
+// runLegacyScriptRefresher runs the bash oci_auth_refresher.sh (requires the OCI CLI).
+func (s *Service) runLegacyScriptRefresher(profile string) error {
+	logger.Logger.V(logger.Info).Info("Starting legacy OCI auth refresher script.", "profile", profile)
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {

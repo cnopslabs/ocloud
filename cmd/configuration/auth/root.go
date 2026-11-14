@@ -41,6 +41,7 @@ func NewSessionCmd() *cobra.Command {
 	cmd.AddCommand(NewAuthenticateCmd())
 	cmd.AddCommand(NewValidateCmd())
 	cmd.AddCommand(NewRefreshCmd())
+	cmd.AddCommand(NewRefresherCmd())
 
 	return cmd
 }

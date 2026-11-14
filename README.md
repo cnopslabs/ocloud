@@ -197,6 +197,8 @@ Settings are resolved in this order: flags, then environment variables, then `~/
 
 `ocloud config session authenticate [--filter us] [--realm OC1]` logs in and starts a background refresher. While it runs, `ocloud` shows `OCI_AUTH_AUTO_REFRESHER: ON [pid]`.
 
+The refresher is part of ocloud (it no longer needs the OCI CLI or bash). It refreshes the session about a minute before it expires, until OCI's maximum session lifetime (usually 24 hours); then sign in again. It keeps running after you close the terminal, retries if the network is down, and catches up after your laptop sleeps. Its files are in `~/.oci/sessions/<profile>/`: `refresher.log`, `refresher.pid` and `session_status` (`valid` or `expired`). Starting it again for the same profile reuses the running one; a refresher script from an earlier ocloud version is stopped and replaced. To stop it, run `kill $(cat ~/.oci/sessions/<profile>/refresher.pid)`. To use the old script refresher for now, set `OCLOUD_REFRESHER=script` before signing in.
+
 To check or extend a session by hand, use the native replacements for `oci session validate` and `oci session refresh`. They read and write the same `~/.oci` files as the OCI CLI and print the same messages:
 
 ```bash

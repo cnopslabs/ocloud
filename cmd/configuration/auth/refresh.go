@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/cnopslabs/ocloud/internal/services/configuration/session"
@@ -126,4 +128,27 @@ func cmdContext(cmd *cobra.Command) context.Context {
 		return ctx
 	}
 	return context.Background()
+}
+
+// NewRefresherCmd creates the hidden `ocloud config session refresher` command: the
+// background loop started by `session authenticate`. It replaces oci_auth_refresher.sh.
+func NewRefresherCmd() *cobra.Command {
+	var f sessionFlags
+	cmd := &cobra.Command{
+		Use:           session.RefresherCommand,
+		Short:         "Keep an OCI session alive in the background (started by 'session authenticate')",
+		Hidden:        true,
+		Args:          cobra.NoArgs,
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			ctx, stop := signal.NotifyContext(cmdContext(cmd), syscall.SIGTERM, syscall.SIGINT)
+			defer stop()
+			signal.Ignore(syscall.SIGHUP) // keep running when the terminal that started us closes
+			d := &session.Daemon{ConfigFile: f.configFile, Profile: f.profile, Log: cmd.ErrOrStderr()}
+			return d.Run(ctx)
+		},
+	}
+	addSessionFlags(cmd, &f)
+	return cmd
 }
