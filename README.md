@@ -44,7 +44,7 @@ Most resources support the same four verbs:
 
 | Area | Resources (aliases) |
 |------|---------------------|
-| `compute` (`comp`) | `instance` (`inst`), `image` (`img`), `oke` |
+| `compute` (`comp`) | `instance` (`inst`), `image` (`img`), `oke` (also `token`, see [OKE access](#oke-access-via-bastion)) |
 | `database` (`db`) | `autonomous` (`adb`), `heatwave` (`hw`), `cache-cluster` (`cc`) |
 | `network` (`net`) | `vcn`, `subnet` (`sub`; uses `find` instead of `search`), `load-balancer` (`lb`), `network-load-balancer` (`nlb`) |
 | `identity` (`ident`) | `compartment` (`cmp`), `policy` (`pol`), `dynamic-group` (`dg`), `bastion` (`b`) |
@@ -77,7 +77,7 @@ In the TUI, `q`, `Esc` or `Ctrl+C` quits.
 | Autonomous DB | Port forwarding | 1521 |
 | HeatWave MySQL | Port forwarding | 3306 |
 | OCI Cache (Redis/Valkey) | Port forwarding | 6379 |
-| OKE cluster | Managed SSH to node, port forwarding to API server (offers to write the kubeconfig) | 6443 |
+| OKE cluster | Managed SSH to node, port forwarding to API server (offers to write the kubeconfig, see [OKE access](#oke-access-via-bastion)) | 6443 |
 | Load balancer (L7/L4) | Port forwarding | you choose |
 
 - Local ports below 1024 (such as 443) ask for your sudo password first.
@@ -91,21 +91,44 @@ ocloud identity bastion create   # Database → Autonomous → pick ADB → port
 sqlplus admin@localhost:1521/mydb_high
 ```
 
-## OKE tokens without the OCI CLI
+## OKE access via bastion
 
-`ocloud oke-token` is a kubectl exec credential plugin that generates OKE tokens natively, replacing `oci ce cluster generate-token`. To use it, point a kubeconfig user at ocloud:
+For a private OKE cluster you need two things:
+
+- **A network path.** The bastion tunnel makes the private API server reachable at `https://127.0.0.1:<port>`.
+- **A token.** The API server still checks who you are. kubectl gets a short-lived token by running `ocloud compute oke token`, a native replacement for `oci ce cluster generate-token`, so the OCI CLI is not needed. You don't run it yourself: kubectl calls it before each request and caches the token for 4 minutes.
+
+`ocloud identity bastion create` handles both: choose **OKE cluster → port forwarding** and agree to write the kubeconfig.
+
+```bash
+ocloud config session authenticate   # once per session
+ocloud identity bastion create        # OKE cluster → port forwarding → port 6443 → write kubeconfig: y
+kubectl --context context-<cluster-suffix> get nodes
+```
+
+The kubeconfig entry it writes:
 
 ```yaml
+clusters:
+- name: cluster-<suffix>
+  cluster:
+    server: https://127.0.0.1:6443
+    insecure-skip-tls-verify: true
 users:
-- name: my-oke-user
+- name: user-<suffix>
   user:
     exec:
       apiVersion: client.authentication.k8s.io/v1beta1
       command: ocloud
-      args: [oke-token, --cluster-id, ocid1.cluster.oc1..., --region, us-ashburn-1]
+      args: [compute, oke, token, --cluster-id, ocid1.cluster.oc1..., --region, us-ashburn-1]
+      interactiveMode: Never
 ```
 
-It uses your session token profile (`OCI_CLI_PROFILE` or `--profile`; `--auth api_key` for API-key profiles). If the session has expired, it exits with an error instead of prompting. Kubeconfig entries written by `bastion create` still use the `oci` command for now.
+- **Existing entries:** if the cluster's entry still calls `oci`, `bastion create` offers to switch it. Only that user's `exec` section changes, and the previous file is kept as `~/.kube/config.bak`. Other kubeconfig entries are left untouched.
+- **Profile:** the token command uses `--profile`, else `OCI_CLI_PROFILE`, else `DEFAULT`. The region defaults to the profile's region. Use `--auth api_key` for API-key profiles.
+- **Expired session:** kubectl shows an error telling you to run `ocloud config session authenticate`. Unlike the OCI CLI, it never waits on a prompt.
+- **Check a token by hand:** `ocloud compute oke token --cluster-id <ocid> --region <region>` prints the ExecCredential JSON.
+- `ocloud oke-token` (v0.2.0) still works but is deprecated.
 
 ## Configuration
 
@@ -121,7 +144,7 @@ Example output (values will vary by version, time, and your environment):
 ╚██████╔╝╚██████╗███████╗╚██████╔╝╚██████╔╝██████╔╝
  ╚═════╝  ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝
 
-	      Version: v0.2.0
+	      Version: v0.2.1
 
 Configuration Details: Valid until <timestamp>
   OCI_CLI_PROFILE: DEFAULT

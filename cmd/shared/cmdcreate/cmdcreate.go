@@ -5,11 +5,11 @@ import (
 	"os"
 
 	"github.com/cnopslabs/ocloud/cmd/compute"
+	computeoke "github.com/cnopslabs/ocloud/cmd/compute/oke"
 	"github.com/cnopslabs/ocloud/cmd/configuration"
 	"github.com/cnopslabs/ocloud/cmd/database"
 	"github.com/cnopslabs/ocloud/cmd/identity"
 	"github.com/cnopslabs/ocloud/cmd/network"
-	"github.com/cnopslabs/ocloud/cmd/oketoken"
 	"github.com/cnopslabs/ocloud/cmd/storage"
 	"github.com/cnopslabs/ocloud/cmd/version"
 	"github.com/cnopslabs/ocloud/internal/app"
@@ -35,7 +35,7 @@ func CreateRootCmd(appCtx *app.ApplicationContext) *cobra.Command {
 	rootCmd.AddCommand(version.NewVersionCommand())
 	version.AddVersionFlag(rootCmd, os.Stdout)
 	rootCmd.AddCommand(configuration.NewConfigCmd())
-	rootCmd.AddCommand(oketoken.NewCommand())
+	rootCmd.AddCommand(computeoke.NewLegacyTokenCmd())
 
 	// If appCtx is not nil, add commands that need context
 	if appCtx != nil {
@@ -84,6 +84,14 @@ func addPlaceholderCommands(rootCmd *cobra.Command) {
 			RunE: func(cmd *cobra.Command, args []string) error {
 				return fmt.Errorf("this command requires application initialization")
 			},
+		}
+		if cmdType.use == "compute" {
+			// `compute oke token` runs without application context (see cmdutil.IsOKETokenCommand),
+			// so the placeholder tree must contain the real token command.
+			cmd.Aliases = []string{"comp"}
+			okeCmd := &cobra.Command{Use: "oke", Short: "Explore OCI Kubernetes Engine (OKE)"}
+			okeCmd.AddCommand(computeoke.NewTokenCmd())
+			cmd.AddCommand(okeCmd)
 		}
 		rootCmd.AddCommand(cmd)
 	}
